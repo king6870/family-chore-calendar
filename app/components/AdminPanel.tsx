@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import PointsManager from './PointsManager'
 import ChoreAuction from './ChoreAuction'
 import RecurringChoreManager from './RecurringChoreManager'
+import ChoreAssignmentManager from './ChoreAssignmentManager'
 
 interface User {
   id: string
@@ -249,6 +250,7 @@ export default function AdminPanel({ currentUser, onRefresh }: AdminPanelProps) 
           {[
             { id: 'members', label: '👥 Members', icon: '👥' },
             { id: 'chores', label: '📋 Chores', icon: '📋' },
+            { id: 'assign', label: '📝 Assign Chores', icon: '📝' },
             { id: 'recurring', label: '🔄 Recurring Chores', icon: '🔄' },
             { id: 'points', label: '🏆 Points Manager', icon: '🏆' },
             { id: 'auctions', label: '🏛️ Chore Auctions', icon: '🏛️' },
@@ -496,6 +498,13 @@ export default function AdminPanel({ currentUser, onRefresh }: AdminPanelProps) 
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Assign Chores Tab */}
+      {activeTab === 'assign' && (
+        <div>
+          <ChoreAssignmentManager />
         </div>
       )}
 

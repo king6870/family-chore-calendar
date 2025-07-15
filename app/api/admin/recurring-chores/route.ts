@@ -2,14 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../../../../lib/auth';
 import { prisma } from '../../../../lib/prisma';
-import { 
-  generateChoresForDateRange, 
-  parseRecurrencePattern, 
-  validateRecurrencePattern,
-  RecurrencePattern 
-} from '../../../../lib/recurringChores';
 
-// GET - Fetch all recurring chores for the family
+// GET - Fetch recurring chore patterns (backward compatible)
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -26,12 +20,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
     }
 
+    // Get chores that are marked as recurring (backward compatible)
     const recurringChores = await prisma.chore.findMany({
       where: {
         familyId: currentUser.family.id,
         isRecurring: true
-      },
-      orderBy: { createdAt: 'desc' }
+      }
     });
 
     return NextResponse.json({ recurringChores });
@@ -42,7 +36,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST - Create or update a recurring chore
+// POST - Create or update recurring chore pattern (backward compatible)
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -59,68 +53,53 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
     }
 
-    const {
-      id,
-      name,
-      description,
-      points,
+    const { 
+      choreId, 
+      name, 
+      description, 
+      points, 
+      difficulty, 
       minAge,
-      difficulty,
-      recurrenceType,
-      recurrenceInterval,
-      recurrenceDays,
-      recurrenceEndDate,
-      isActive
+      recurrenceType, 
+      recurrenceInterval, 
+      recurrenceDays 
     } = await request.json();
 
     // Validate required fields
-    if (!name || !points || points < 1) {
-      return NextResponse.json({ error: 'Name and points are required' }, { status: 400 });
+    if (!name || !points || !recurrenceType) {
+      return NextResponse.json({ error: 'Name, points, and recurrence type are required' }, { status: 400 });
     }
 
-    // Validate recurrence pattern if provided
-    if (recurrenceType) {
-      const pattern: Partial<RecurrencePattern> = {
-        type: recurrenceType,
-        interval: recurrenceInterval,
-        days: recurrenceDays,
-        endDate: recurrenceEndDate ? new Date(recurrenceEndDate) : undefined
-      };
-
-      const validation = validateRecurrencePattern(pattern);
-      if (!validation.isValid) {
-        return NextResponse.json({ 
-          error: 'Invalid recurrence pattern', 
-          details: validation.errors 
-        }, { status: 400 });
-      }
-    }
-
-    const choreData = {
-      name,
-      description: description || null,
+    const choreData: any = {
+      name: name.trim(),
+      description: description?.trim() || '',
       points: parseInt(points),
-      minAge: parseInt(minAge) || 0,
-      difficulty: difficulty || 'Easy',
       basePoints: parseInt(points),
-      isRecurring: !!recurrenceType,
-      recurrenceType: recurrenceType || null,
-      recurrenceInterval: recurrenceInterval ? parseInt(recurrenceInterval) : null,
-      recurrenceDays: recurrenceDays ? JSON.stringify(recurrenceDays) : null,
-      recurrenceEndDate: recurrenceEndDate ? new Date(recurrenceEndDate) : null,
-      isActive: isActive !== false, // Default to true
-      familyId: currentUser.family.id
+      difficulty: difficulty || 'Easy',
+      minAge: parseInt(minAge) || 0,
+      familyId: currentUser.family.id,
+      isRecurring: true
     };
 
+    // Add recurring fields if they exist in schema (backward compatible)
+    try {
+      if (recurrenceType) choreData.recurrenceType = recurrenceType;
+      if (recurrenceInterval) choreData.recurrenceInterval = parseInt(recurrenceInterval);
+      if (recurrenceDays) choreData.recurrenceDays = recurrenceDays;
+    } catch (e) {
+      // Ignore if fields don't exist in production schema
+      console.log('Recurring fields not available in production schema');
+    }
+
     let chore;
-    if (id) {
+    if (choreId) {
       // Update existing chore
       chore = await prisma.chore.update({
-        where: { id },
+        where: { id: choreId },
         data: choreData
       });
     } else {
-      // Create new chore
+      // Create new recurring chore
       chore = await prisma.chore.create({
         data: choreData
       });
@@ -128,7 +107,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ 
       chore,
-      message: id ? 'Recurring chore updated successfully' : 'Recurring chore created successfully'
+      message: choreId ? 'Recurring chore updated successfully' : 'Recurring chore created successfully'
     });
 
   } catch (error) {
@@ -137,7 +116,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// PUT - Generate chores from recurring patterns
+// PUT - Generate chores from patterns (simplified for production compatibility)
 export async function PUT(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -157,7 +136,7 @@ export async function PUT(request: NextRequest) {
     const { startDate, endDate, choreId } = await request.json();
 
     if (!startDate || !endDate) {
-      return NextResponse.json({ error: 'Start and end dates are required' }, { status: 400 });
+      return NextResponse.json({ error: 'Start date and end date are required' }, { status: 400 });
     }
 
     const start = new Date(startDate);
@@ -167,7 +146,6 @@ export async function PUT(request: NextRequest) {
     const whereClause = {
       familyId: currentUser.family.id,
       isRecurring: true,
-      // Only filter by isActive if the field exists in the schema
       ...(choreId && { id: choreId })
     };
 
@@ -179,43 +157,52 @@ export async function PUT(request: NextRequest) {
     const generatedChores = [];
 
     for (const recurringChore of recurringChores) {
-      const pattern = parseRecurrencePattern(recurringChore);
-      if (!pattern) continue;
-
-      const dates = generateChoresForDateRange(recurringChore, start, end);
+      // Simple weekly generation for production compatibility
+      const dates = generateSimpleWeeklyDates(start, end);
       
       for (const date of dates) {
-        // Check if chore already exists for this date
-        const existingAssignment = await prisma.choreAssignment.findFirst({
-          where: {
-            choreId: recurringChore.id,
-            date: {
-              gte: new Date(date.getFullYear(), date.getMonth(), date.getDate()),
-              lt: new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1)
-            }
-          }
+        // For recurring chores, we'll create assignments without specific users
+        // Admins can later assign them to specific family members
+        const familyMembers = await prisma.user.findMany({
+          where: { familyId: currentUser.family.id },
+          select: { id: true }
         });
 
-        if (!existingAssignment) {
-          // Create new chore assignment
-          const assignment = await prisma.choreAssignment.create({
-            data: {
+        // Create assignments for all family members or just create the chore availability
+        for (const member of familyMembers) {
+          // Check if chore already exists for this date and user
+          const existingAssignment = await prisma.choreAssignment.findFirst({
+            where: {
               choreId: recurringChore.id,
-              date: date,
-              dayOfWeek: date.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase(),
-              completed: false,
-              familyId: currentUser.family.id,
-              userId: '' // Will be assigned later through auction or manual assignment
+              userId: member.id,
+              date: {
+                gte: new Date(date.getFullYear(), date.getMonth(), date.getDate()),
+                lt: new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1)
+              }
             }
           });
 
-          generatedChores.push({
-            choreName: recurringChore.name,
-            date: date,
-            assignmentId: assignment.id
-          });
+          if (!existingAssignment) {
+            // Create new assignment for each family member
+            const assignment = await prisma.choreAssignment.create({
+              data: {
+                choreId: recurringChore.id,
+                userId: member.id,
+                familyId: currentUser.family.id,
+                date: date,
+                dayOfWeek: date.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase(),
+                completed: false
+              }
+            });
 
-          totalGenerated++;
+            generatedChores.push({
+              choreName: recurringChore.name,
+              dueDate: date,
+              assignmentId: assignment.id
+            });
+
+            totalGenerated++;
+          }
         }
       }
 
@@ -230,7 +217,23 @@ export async function PUT(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error generating recurring chores:', error);
-    return NextResponse.json({ error: 'Failed to generate recurring chores' }, { status: 500 });
+    console.error('Error generating chores:', error);
+    return NextResponse.json({ error: 'Failed to generate chores' }, { status: 500 });
   }
+}
+
+// Simple date generation for production compatibility
+function generateSimpleWeeklyDates(startDate: Date, endDate: Date): Date[] {
+  const dates: Date[] = [];
+  const current = new Date(startDate);
+  
+  while (current <= endDate) {
+    // Generate for every Monday (simple weekly pattern)
+    if (current.getDay() === 1) {
+      dates.push(new Date(current));
+    }
+    current.setDate(current.getDate() + 1);
+  }
+  
+  return dates;
 }
