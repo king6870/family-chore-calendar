@@ -1,0 +1,825 @@
+
+> nextjs-auth-app@0.1.0 dev
+> next dev
+
+ ⚠ Port 3000 is in use, trying 3001 instead.
+ ⚠ Port 3001 is in use, trying 3002 instead.
+   ▲ Next.js 14.0.0
+   - Local:        http://localhost:3002
+   - Environments: .env.local
+
+ ⚠ Invalid next.config.js options detected: 
+ ⚠     Unrecognized key(s) in object: 'appDir' at "experimental"
+ ⚠ See more info here: https://nextjs.org/docs/messages/invalid-next-config
+ ✓ Ready in 2.1s
+ ○ Compiling /page ...
+ ✓ Compiled /page in 2.7s (520 modules)
+ ✓ Compiled in 308ms (268 modules)
+ ○ Compiling /api/auth/[...nextauth]/route ...
+ ✓ Compiled /api/auth/[...nextauth]/route in 2.1s (737 modules)
+ ⨯ TypeError: Cannot read properties of undefined (reading 'call')
+    at __webpack_require__ (C:\Users\lionv\nextjs-auth-app\.next\server\webpack-runtime.js:33:43)
+    at __webpack_require__ (C:\Users\lionv\nextjs-auth-app\.next\server\webpack-runtime.js:33:43)
+    at __webpack_require__ (C:\Users\lionv\nextjs-auth-app\.next\server\webpack-runtime.js:33:43)
+    at __webpack_require__ (C:\Users\lionv\nextjs-auth-app\.next\server\webpack-runtime.js:33:43)
+    at JSON.parse (<anonymous>)
+TypeError: Cannot read properties of undefined (reading 'call')
+    at __webpack_require__ (C:\Users\lionv\nextjs-auth-app\.next\server\webpack-runtime.js:33:43)
+    at eval (webpack-internal:///(ssr)/./node_modules/next/dist/client/components/redirect.js:35:38)
+    at (ssr)/./node_modules/next/dist/client/components/redirect.js (C:\Users\lionv\nextjs-auth-app\.next\server\vendor-chunks\next.js:877:1)
+    at __webpack_require__ (C:\Users\lionv\nextjs-auth-app\.next\server\webpack-runtime.js:33:43)
+    at eval (webpack-internal:///(ssr)/./node_modules/next/dist/client/components/navigation.js:59:19)
+    at (ssr)/./node_modules/next/dist/client/components/navigation.js (C:\Users\lionv\nextjs-auth-app\.next\server\vendor-chunks\next.js:184:1)
+    at __webpack_require__ (C:\Users\lionv\nextjs-auth-app\.next\server\webpack-runtime.js:33:43)
+    at eval (webpack-internal:///(ssr)/./node_modules/next/dist/client/components/error-boundary.js:30:21)
+    at (ssr)/./node_modules/next/dist/client/components/error-boundary.js (C:\Users\lionv\nextjs-auth-app\.next\server\vendor-chunks\next.js:107:1)
+    at __webpack_require__ (C:\Users\lionv\nextjs-auth-app\.next\server\webpack-runtime.js:33:43)
+    at C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:100881
+    at eo (C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:101066)
+    at C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:103499
+    at Object._fromJSON (C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:103851)
+    at JSON.parse (<anonymous>)
+    at eu (C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:101560)
+    at en (C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:100628)
+    at K (C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:99620)
+    at e (C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:46019)
+    at ah (C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:47773)
+    at ac (C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:7923)
+    at C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:13014
+    at ap (C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:13038)
+    at e (C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:45795)
+    at ah (C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:47773)
+    at C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:53606
+    at C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:54286
+    at ak (C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:54294)
+    at Timeout._onTimeout (C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:4037)
+    at listOnTimeout (node:internal/timers:588:17)
+    at process.processTimers (node:internal/timers:523:7)
+ ⨯ TypeError: Cannot read properties of undefined (reading 'call')
+    at __webpack_require__ (C:\Users\lionv\nextjs-auth-app\.next\server\webpack-runtime.js:33:43)
+    at eval (webpack-internal:///(ssr)/./node_modules/next/dist/client/components/redirect.js:35:38)
+    at (ssr)/./node_modules/next/dist/client/components/redirect.js (C:\Users\lionv\nextjs-auth-app\.next\server\vendor-chunks\next.js:877:1)
+    at __webpack_require__ (C:\Users\lionv\nextjs-auth-app\.next\server\webpack-runtime.js:33:43)
+    at eval (webpack-internal:///(ssr)/./node_modules/next/dist/client/components/navigation.js:59:19)
+    at (ssr)/./node_modules/next/dist/client/components/navigation.js (C:\Users\lionv\nextjs-auth-app\.next\server\vendor-chunks\next.js:184:1)
+    at __webpack_require__ (C:\Users\lionv\nextjs-auth-app\.next\server\webpack-runtime.js:33:43)
+    at eval (webpack-internal:///(ssr)/./node_modules/next/dist/client/components/error-boundary.js:30:21)
+    at (ssr)/./node_modules/next/dist/client/components/error-boundary.js (C:\Users\lionv\nextjs-auth-app\.next\server\vendor-chunks\next.js:107:1)
+    at __webpack_require__ (C:\Users\lionv\nextjs-auth-app\.next\server\webpack-runtime.js:33:43)
+    at C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:100881
+    at eo (C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:101066)
+    at C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:103499
+    at Object._fromJSON (C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:103851)
+    at JSON.parse (<anonymous>)
+    at eu (C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:101560)
+    at en (C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:100628)
+    at K (C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:99620)
+    at e (C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:46019)
+    at ah (C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:47773)
+    at ac (C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:7923)
+    at C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:13014
+    at ap (C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:13038)
+    at e (C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:45795)
+    at ah (C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:47773)
+    at C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:53606
+    at C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:54286
+    at ak (C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:54294)
+    at Timeout._onTimeout (C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-page.runtime.dev.js:35:4037)
+    at listOnTimeout (node:internal/timers:588:17)
+    at process.processTimers (node:internal/timers:523:7) {
+  page: '/'
+}
+ ○ Compiling /_error ...
+ ✓ Compiled /_error in 871ms (896 modules)
+ ✓ Compiled /api/posts/route in 139ms (537 modules)
+ ⨯ ./app/page.tsx:5:0
+Module not found: Can't resolve './components/ChoreCalendar'
+[0m [90m 3 |[39m [36mimport[39m { useSession[33m,[39m signIn[33m,[39m signOut } [36mfrom[39m [32m'next-auth/react'[39m[0m
+[0m [90m 4 |[39m [36mimport[39m { useState[33m,[39m useEffect } [36mfrom[39m [32m'react'[39m[0m
+[0m[31m[1m>[22m[39m[90m 5 |[39m [36mimport[39m [33mChoreCalendar[39m [36mfrom[39m [32m'./components/ChoreCalendar'[39m[0m
+[0m [90m 6 |[39m [36mimport[39m [33mFamilySetup[39m [36mfrom[39m [32m'./components/FamilySetup'[39m[0m
+[0m [90m 7 |[39m [36mimport[39m [33mAdminPanel[39m [36mfrom[39m [32m'./components/AdminPanel'[39m[0m
+[0m [90m 8 |[39m [36mimport[39m [33mPointsTracker[39m [36mfrom[39m [32m'./components/PointsTracker'[39m[0m
+
+https://nextjs.org/docs/messages/module-not-found
+ ⨯ ./app/page.tsx:6:0
+Module not found: Can't resolve './components/FamilySetup'
+[0m [90m 4 |[39m [36mimport[39m { useState[33m,[39m useEffect } [36mfrom[39m [32m'react'[39m[0m
+[0m [90m 5 |[39m [36mimport[39m [33mChoreCalendar[39m [36mfrom[39m [32m'./components/ChoreCalendar'[39m[0m
+[0m[31m[1m>[22m[39m[90m 6 |[39m [36mimport[39m [33mFamilySetup[39m [36mfrom[39m [32m'./components/FamilySetup'[39m[0m
+[0m [90m 7 |[39m [36mimport[39m [33mAdminPanel[39m [36mfrom[39m [32m'./components/AdminPanel'[39m[0m
+[0m [90m 8 |[39m [36mimport[39m [33mPointsTracker[39m [36mfrom[39m [32m'./components/PointsTracker'[39m[0m
+[0m [90m 9 |[39m[0m
+
+https://nextjs.org/docs/messages/module-not-found
+ ⨯ ./app/page.tsx:6:0
+Module not found: Can't resolve './components/FamilySetup'
+[0m [90m 4 |[39m [36mimport[39m { useState[33m,[39m useEffect } [36mfrom[39m [32m'react'[39m[0m
+[0m [90m 5 |[39m [36mimport[39m [33mChoreCalendar[39m [36mfrom[39m [32m'./components/ChoreCalendar'[39m[0m
+[0m[31m[1m>[22m[39m[90m 6 |[39m [36mimport[39m [33mFamilySetup[39m [36mfrom[39m [32m'./components/FamilySetup'[39m[0m
+[0m [90m 7 |[39m [36mimport[39m [33mAdminPanel[39m [36mfrom[39m [32m'./components/AdminPanel'[39m[0m
+[0m [90m 8 |[39m [36mimport[39m [33mPointsTracker[39m [36mfrom[39m [32m'./components/PointsTracker'[39m[0m
+[0m [90m 9 |[39m[0m
+
+https://nextjs.org/docs/messages/module-not-found
+ ⨯ ./app/page.tsx:6:0
+Module not found: Can't resolve './components/FamilySetup'
+[0m [90m 4 |[39m [36mimport[39m { useState[33m,[39m useEffect } [36mfrom[39m [32m'react'[39m[0m
+[0m [90m 5 |[39m [36mimport[39m [33mChoreCalendar[39m [36mfrom[39m [32m'./components/ChoreCalendar'[39m[0m
+[0m[31m[1m>[22m[39m[90m 6 |[39m [36mimport[39m [33mFamilySetup[39m [36mfrom[39m [32m'./components/FamilySetup'[39m[0m
+[0m [90m 7 |[39m [36mimport[39m [33mAdminPanel[39m [36mfrom[39m [32m'./components/AdminPanel'[39m[0m
+[0m [90m 8 |[39m [36mimport[39m [33mPointsTracker[39m [36mfrom[39m [32m'./components/PointsTracker'[39m[0m
+[0m [90m 9 |[39m[0m
+
+https://nextjs.org/docs/messages/module-not-found
+ ⨯ ./app/page.tsx:7:0
+Module not found: Can't resolve './components/AdminPanel'
+[0m [90m  5 |[39m [36mimport[39m [33mChoreCalendar[39m [36mfrom[39m [32m'./components/ChoreCalendar'[39m[0m
+[0m [90m  6 |[39m [36mimport[39m [33mFamilySetup[39m [36mfrom[39m [32m'./components/FamilySetup'[39m[0m
+[0m[31m[1m>[22m[39m[90m  7 |[39m [36mimport[39m [33mAdminPanel[39m [36mfrom[39m [32m'./components/AdminPanel'[39m[0m
+[0m [90m  8 |[39m [36mimport[39m [33mPointsTracker[39m [36mfrom[39m [32m'./components/PointsTracker'[39m[0m
+[0m [90m  9 |[39m[0m
+[0m [90m 10 |[39m [36minterface[39m [33mUser[39m {[0m
+
+https://nextjs.org/docs/messages/module-not-found
+ ✓ Compiled /not-found in 809ms (683 modules)
+ ✓ Compiled in 121ms (397 modules)
+ ✓ Compiled in 669ms (683 modules)
+ ✓ Compiled in 146ms (397 modules)
+ ✓ Compiled in 372ms (669 modules)
+ ✓ Compiled /api/auth/[...nextauth]/route in 389ms (526 modules)
+ ✓ Compiled /api/user/route in 117ms (544 modules)
+Error fetching user data: PrismaClientValidationError: 
+Invalid `prisma.user.findUnique()` invocation:
+
+{
+  where: {
+    email: "lionvihaan@gmail.com"
+  },
+  include: {
+    family: true,
+    ~~~~~~
+?   accounts?: true,
+?   sessions?: true,
+?   posts?: true
+  }
+}
+
+Unknown field `family` for include statement on model `User`. Available options are marked with ?.
+    at wn (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async GET (webpack-internal:///(rsc)/./app/api/user/route.ts:23:22)
+    at async C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:61856 {
+  clientVersion: '5.22.0'
+}
+Error fetching user data: PrismaClientValidationError: 
+Invalid `prisma.user.findUnique()` invocation:
+
+{
+  where: {
+    email: "lionvihaan@gmail.com"
+  },
+  include: {
+    family: true,
+    ~~~~~~
+?   accounts?: true,
+?   sessions?: true,
+?   posts?: true
+  }
+}
+
+Unknown field `family` for include statement on model `User`. Available options are marked with ?.
+    at wn (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async GET (webpack-internal:///(rsc)/./app/api/user/route.ts:23:22)
+    at async C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:61856 {
+  clientVersion: '5.22.0'
+}
+ ✓ Compiled in 175ms (397 modules)
+ ✓ Compiled in 487ms (927 modules)
+Error fetching user data: PrismaClientValidationError: 
+Invalid `prisma.user.findUnique()` invocation:
+
+{
+  where: {
+    email: "lionvihaan@gmail.com"
+  },
+  include: {
+    family: true,
+    ~~~~~~
+?   accounts?: true,
+?   sessions?: true,
+?   posts?: true
+  }
+}
+
+Unknown field `family` for include statement on model `User`. Available options are marked with ?.
+    at wn (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async GET (webpack-internal:///(rsc)/./app/api/user/route.ts:23:22)
+    at async C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:61856 {
+  clientVersion: '5.22.0'
+}
+Error fetching user data: PrismaClientValidationError: 
+Invalid `prisma.user.findUnique()` invocation:
+
+{
+  where: {
+    email: "lionvihaan@gmail.com"
+  },
+  include: {
+    family: true,
+    ~~~~~~
+?   accounts?: true,
+?   sessions?: true,
+?   posts?: true
+  }
+}
+
+Unknown field `family` for include statement on model `User`. Available options are marked with ?.
+    at wn (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async GET (webpack-internal:///(rsc)/./app/api/user/route.ts:23:22)
+    at async C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:61856 {
+  clientVersion: '5.22.0'
+}
+ ✓ Compiled in 138ms (397 modules)
+ ✓ Compiled in 424ms (927 modules)
+Error fetching user data: PrismaClientValidationError: 
+Invalid `prisma.user.findUnique()` invocation:
+
+{
+  where: {
+    email: "lionvihaan@gmail.com"
+  },
+  include: {
+    family: true,
+    ~~~~~~
+?   accounts?: true,
+?   sessions?: true,
+?   posts?: true
+  }
+}
+
+Unknown field `family` for include statement on model `User`. Available options are marked with ?.
+    at wn (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async GET (webpack-internal:///(rsc)/./app/api/user/route.ts:23:22)
+    at async C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:61856 {
+  clientVersion: '5.22.0'
+}
+Error fetching user data: PrismaClientValidationError: 
+Invalid `prisma.user.findUnique()` invocation:
+
+{
+  where: {
+    email: "lionvihaan@gmail.com"
+  },
+  include: {
+    family: true,
+    ~~~~~~
+?   accounts?: true,
+?   sessions?: true,
+?   posts?: true
+  }
+}
+
+Unknown field `family` for include statement on model `User`. Available options are marked with ?.
+    at wn (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async GET (webpack-internal:///(rsc)/./app/api/user/route.ts:23:22)
+    at async C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:61856 {
+  clientVersion: '5.22.0'
+}
+ ✓ Compiled in 160ms (397 modules)
+ ✓ Compiled in 419ms (927 modules)
+Error fetching user data: PrismaClientValidationError: 
+Invalid `prisma.user.findUnique()` invocation:
+
+{
+  where: {
+    email: "lionvihaan@gmail.com"
+  },
+  include: {
+    family: true,
+    ~~~~~~
+?   accounts?: true,
+?   sessions?: true,
+?   posts?: true
+  }
+}
+
+Unknown field `family` for include statement on model `User`. Available options are marked with ?.
+    at wn (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async GET (webpack-internal:///(rsc)/./app/api/user/route.ts:23:22)
+    at async C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:61856 {
+  clientVersion: '5.22.0'
+}
+Error fetching user data: PrismaClientValidationError: 
+Invalid `prisma.user.findUnique()` invocation:
+
+{
+  where: {
+    email: "lionvihaan@gmail.com"
+  },
+  include: {
+    family: true,
+    ~~~~~~
+?   accounts?: true,
+?   sessions?: true,
+?   posts?: true
+  }
+}
+
+Unknown field `family` for include statement on model `User`. Available options are marked with ?.
+    at wn (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async GET (webpack-internal:///(rsc)/./app/api/user/route.ts:23:22)
+    at async C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:61856 {
+  clientVersion: '5.22.0'
+}
+ ✓ Compiled in 150ms (397 modules)
+ ✓ Compiled in 443ms (927 modules)
+Error fetching user data: PrismaClientValidationError: 
+Invalid `prisma.user.findUnique()` invocation:
+
+{
+  where: {
+    email: "lionvihaan@gmail.com"
+  },
+  include: {
+    family: true,
+    ~~~~~~
+?   accounts?: true,
+?   sessions?: true,
+?   posts?: true
+  }
+}
+
+Unknown field `family` for include statement on model `User`. Available options are marked with ?.
+    at wn (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async GET (webpack-internal:///(rsc)/./app/api/user/route.ts:23:22)
+    at async C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:61856 {
+  clientVersion: '5.22.0'
+}
+Error fetching user data: PrismaClientValidationError: 
+Invalid `prisma.user.findUnique()` invocation:
+
+{
+  where: {
+    email: "lionvihaan@gmail.com"
+  },
+  include: {
+    family: true,
+    ~~~~~~
+?   accounts?: true,
+?   sessions?: true,
+?   posts?: true
+  }
+}
+
+Unknown field `family` for include statement on model `User`. Available options are marked with ?.
+    at wn (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async GET (webpack-internal:///(rsc)/./app/api/user/route.ts:23:22)
+    at async C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:61856 {
+  clientVersion: '5.22.0'
+}
+ ✓ Compiled in 136ms (397 modules)
+ ✓ Compiled in 419ms (927 modules)
+Error fetching user data: PrismaClientValidationError: 
+Invalid `prisma.user.findUnique()` invocation:
+
+{
+  where: {
+    email: "lionvihaan@gmail.com"
+  },
+  include: {
+    family: true,
+    ~~~~~~
+?   accounts?: true,
+?   sessions?: true,
+?   posts?: true
+  }
+}
+
+Unknown field `family` for include statement on model `User`. Available options are marked with ?.
+    at wn (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async GET (webpack-internal:///(rsc)/./app/api/user/route.ts:23:22)
+    at async C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:61856 {
+  clientVersion: '5.22.0'
+}
+Error fetching user data: PrismaClientValidationError: 
+Invalid `prisma.user.findUnique()` invocation:
+
+{
+  where: {
+    email: "lionvihaan@gmail.com"
+  },
+  include: {
+    family: true,
+    ~~~~~~
+?   accounts?: true,
+?   sessions?: true,
+?   posts?: true
+  }
+}
+
+Unknown field `family` for include statement on model `User`. Available options are marked with ?.
+    at wn (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async GET (webpack-internal:///(rsc)/./app/api/user/route.ts:23:22)
+    at async C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:61856 {
+  clientVersion: '5.22.0'
+}
+ ✓ Compiled in 114ms (397 modules)
+ ✓ Compiled in 332ms (927 modules)
+Error fetching user data: PrismaClientValidationError: 
+Invalid `prisma.user.findUnique()` invocation:
+
+{
+  where: {
+    email: "lionvihaan@gmail.com"
+  },
+  include: {
+    family: true,
+    ~~~~~~
+?   accounts?: true,
+?   sessions?: true,
+?   posts?: true
+  }
+}
+
+Unknown field `family` for include statement on model `User`. Available options are marked with ?.
+    at wn (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async GET (webpack-internal:///(rsc)/./app/api/user/route.ts:23:22)
+    at async C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:61856 {
+  clientVersion: '5.22.0'
+}
+Error fetching user data: PrismaClientValidationError: 
+Invalid `prisma.user.findUnique()` invocation:
+
+{
+  where: {
+    email: "lionvihaan@gmail.com"
+  },
+  include: {
+    family: true,
+    ~~~~~~
+?   accounts?: true,
+?   sessions?: true,
+?   posts?: true
+  }
+}
+
+Unknown field `family` for include statement on model `User`. Available options are marked with ?.
+    at wn (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async GET (webpack-internal:///(rsc)/./app/api/user/route.ts:23:22)
+    at async C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:61856 {
+  clientVersion: '5.22.0'
+}
+ ✓ Compiled in 129ms (397 modules)
+ ✓ Compiled in 391ms (927 modules)
+Error fetching user data: PrismaClientValidationError: 
+Invalid `prisma.user.findUnique()` invocation:
+
+{
+  where: {
+    email: "lionvihaan@gmail.com"
+  },
+  include: {
+    family: true,
+    ~~~~~~
+?   accounts?: true,
+?   sessions?: true,
+?   posts?: true
+  }
+}
+
+Unknown field `family` for include statement on model `User`. Available options are marked with ?.
+    at wn (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async GET (webpack-internal:///(rsc)/./app/api/user/route.ts:23:22)
+    at async C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:61856 {
+  clientVersion: '5.22.0'
+}
+Error fetching user data: PrismaClientValidationError: 
+Invalid `prisma.user.findUnique()` invocation:
+
+{
+  where: {
+    email: "lionvihaan@gmail.com"
+  },
+  include: {
+    family: true,
+    ~~~~~~
+?   accounts?: true,
+?   sessions?: true,
+?   posts?: true
+  }
+}
+
+Unknown field `family` for include statement on model `User`. Available options are marked with ?.
+    at wn (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async GET (webpack-internal:///(rsc)/./app/api/user/route.ts:23:22)
+    at async C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:61856 {
+  clientVersion: '5.22.0'
+}
+ ✓ Compiled in 170ms (397 modules)
+ ✓ Compiled in 467ms (927 modules)
+Error fetching user data: PrismaClientValidationError: 
+Invalid `prisma.user.findUnique()` invocation:
+
+{
+  where: {
+    email: "lionvihaan@gmail.com"
+  },
+  include: {
+    family: true,
+    ~~~~~~
+?   accounts?: true,
+?   sessions?: true,
+?   posts?: true
+  }
+}
+
+Unknown field `family` for include statement on model `User`. Available options are marked with ?.
+    at wn (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async GET (webpack-internal:///(rsc)/./app/api/user/route.ts:23:22)
+    at async C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:61856 {
+  clientVersion: '5.22.0'
+}
+Error fetching user data: PrismaClientValidationError: 
+Invalid `prisma.user.findUnique()` invocation:
+
+{
+  where: {
+    email: "lionvihaan@gmail.com"
+  },
+  include: {
+    family: true,
+    ~~~~~~
+?   accounts?: true,
+?   sessions?: true,
+?   posts?: true
+  }
+}
+
+Unknown field `family` for include statement on model `User`. Available options are marked with ?.
+    at wn (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async GET (webpack-internal:///(rsc)/./app/api/user/route.ts:23:22)
+    at async C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:61856 {
+  clientVersion: '5.22.0'
+}
+ ✓ Compiled in 138ms (397 modules)
+ ✓ Compiled in 429ms (927 modules)
+Error fetching user data: PrismaClientValidationError: 
+Invalid `prisma.user.findUnique()` invocation:
+
+{
+  where: {
+    email: "lionvihaan@gmail.com"
+  },
+  include: {
+    family: true,
+    ~~~~~~
+?   accounts?: true,
+?   sessions?: true,
+?   posts?: true
+  }
+}
+
+Unknown field `family` for include statement on model `User`. Available options are marked with ?.
+    at wn (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async GET (webpack-internal:///(rsc)/./app/api/user/route.ts:23:22)
+    at async C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:61856 {
+  clientVersion: '5.22.0'
+}
+Error fetching user data: PrismaClientValidationError: 
+Invalid `prisma.user.findUnique()` invocation:
+
+{
+  where: {
+    email: "lionvihaan@gmail.com"
+  },
+  include: {
+    family: true,
+    ~~~~~~
+?   accounts?: true,
+?   sessions?: true,
+?   posts?: true
+  }
+}
+
+Unknown field `family` for include statement on model `User`. Available options are marked with ?.
+    at wn (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async GET (webpack-internal:///(rsc)/./app/api/user/route.ts:23:22)
+    at async C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:61856 {
+  clientVersion: '5.22.0'
+}
+ ⨯ Module not found: Error: Can't resolve 'next-flight-client-entry-loader' in 'C:\Users\lionv\nextjs-auth-app'
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\lionv\nextjs-auth-app\.next\cache\webpack\client-development\6.pack.gz_' -> 'C:\Users\lionv\nextjs-auth-app\.next\cache\webpack\client-development\6.pack.gz'
+ ✓ Compiled in 375ms (677 modules)
+ ⨯ SyntaxError: Unexpected end of JSON input
+    at JSON.parse (<anonymous>)
+    at loadManifest (C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\server\load-manifest.js:30:27)
+    at DevServer.getNextFontManifest (C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\server\next-server.js:701:47)
+    at DevServer.findPageComponents (C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\server\dev\next-dev-server.js:537:43)
+    at async DevServer.renderPageComponent (C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\server\base-server.js:1748:24)
+    at async DevServer.renderToResponseImpl (C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\server\base-server.js:1798:32)
+    at async DevServer.pipeImpl (C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\server\base-server.js:851:25)
+    at async NextNodeServer.handleCatchallRenderRequest (C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\server\next-server.js:266:17)
+    at async DevServer.handleRequestImpl (C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\server\base-server.js:748:17) {
+  page: '/'
+}
+ ✓ Compiled in 146ms (394 modules)
+ ✓ Compiled /_error in 114ms (664 modules)
+ ✓ Compiled /api/auth/[...nextauth]/route in 92ms (523 modules)
+ ✓ Compiled /api/user/route in 163ms (541 modules)
+Error fetching user data: PrismaClientValidationError: 
+Invalid `prisma.user.findUnique()` invocation:
+
+{
+  where: {
+    email: "lionvihaan@gmail.com"
+  },
+  include: {
+    family: true,
+    ~~~~~~
+?   accounts?: true,
+?   sessions?: true,
+?   posts?: true
+  }
+}
+
+Unknown field `family` for include statement on model `User`. Available options are marked with ?.
+    at wn (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async GET (webpack-internal:///(rsc)/./app/api/user/route.ts:23:22)
+    at async C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:61856 {
+  clientVersion: '5.22.0'
+}
+Error fetching user data: PrismaClientValidationError: 
+Invalid `prisma.user.findUnique()` invocation:
+
+{
+  where: {
+    email: "lionvihaan@gmail.com"
+  },
+  include: {
+    family: true,
+    ~~~~~~
+?   accounts?: true,
+?   sessions?: true,
+?   posts?: true
+  }
+}
+
+Unknown field `family` for include statement on model `User`. Available options are marked with ?.
+    at wn (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:29:1363)
+    at $n.handleRequestError (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6958)
+    at $n.handleAndLogRequestError (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6623)
+    at $n.request (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:121:6307)
+    at async l (C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\runtime\library.js:130:9633)
+    at async GET (webpack-internal:///(rsc)/./app/api/user/route.ts:23:22)
+    at async C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\next-server\app-route.runtime.dev.js:6:61856 {
+  clientVersion: '5.22.0'
+}
+ ⨯ Failed to generate static paths for /api/auth/[...nextauth]:
+Error: Cannot find module '.prisma/client/default'
+Require stack:
+- C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\default.js
+- C:\Users\lionv\nextjs-auth-app\.next\server\app\api\auth\[...nextauth]\route.js
+- C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\server\require.js
+- C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\server\load-components.js
+- C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\build\utils.js
+- C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\server\dev\static-paths-worker.js
+- C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\jest-worker\processChild.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1401:15)
+    at C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\server\require-hook.js:54:36
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1057:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1062:22)
+    at Function._load (node:internal/modules/cjs/loader:1211:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1487:12)
+    at mod.require (C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\server\require-hook.js:64:28)
+    at require (node:internal/modules/helpers:135:16) {
+  type: 'Error',
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    'C:\\Users\\lionv\\nextjs-auth-app\\node_modules\\@prisma\\client\\default.js',
+    'C:\\Users\\lionv\\nextjs-auth-app\\.next\\server\\app\\api\\auth\\[...nextauth]\\route.js',
+    'C:\\Users\\lionv\\nextjs-auth-app\\node_modules\\next\\dist\\server\\require.js',
+    'C:\\Users\\lionv\\nextjs-auth-app\\node_modules\\next\\dist\\server\\load-components.js',
+    'C:\\Users\\lionv\\nextjs-auth-app\\node_modules\\next\\dist\\build\\utils.js',
+    'C:\\Users\\lionv\\nextjs-auth-app\\node_modules\\next\\dist\\server\\dev\\static-paths-worker.js',
+    'C:\\Users\\lionv\\nextjs-auth-app\\node_modules\\next\\dist\\compiled\\jest-worker\\processChild.js'
+  ]
+}
+ ⨯ Failed to generate static paths for /api/auth/[...nextauth]:
+Error: Cannot find module '.prisma/client/default'
+Require stack:
+- C:\Users\lionv\nextjs-auth-app\node_modules\@prisma\client\default.js
+- C:\Users\lionv\nextjs-auth-app\.next\server\app\api\auth\[...nextauth]\route.js
+- C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\server\require.js
+- C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\server\load-components.js
+- C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\build\utils.js
+- C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\server\dev\static-paths-worker.js
+- C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\compiled\jest-worker\processChild.js
+    at Function.<anonymous> (node:internal/modules/cjs/loader:1401:15)
+    at C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\server\require-hook.js:54:36
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1057:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1062:22)
+    at Function._load (node:internal/modules/cjs/loader:1211:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:235:24)
+    at Module.<anonymous> (node:internal/modules/cjs/loader:1487:12)
+    at mod.require (C:\Users\lionv\nextjs-auth-app\node_modules\next\dist\server\require-hook.js:64:28)
+    at require (node:internal/modules/helpers:135:16) {
+  type: 'Error',
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    'C:\\Users\\lionv\\nextjs-auth-app\\node_modules\\@prisma\\client\\default.js',
+    'C:\\Users\\lionv\\nextjs-auth-app\\.next\\server\\app\\api\\auth\\[...nextauth]\\route.js',
+    'C:\\Users\\lionv\\nextjs-auth-app\\node_modules\\next\\dist\\server\\require.js',
+    'C:\\Users\\lionv\\nextjs-auth-app\\node_modules\\next\\dist\\server\\load-components.js',
+    'C:\\Users\\lionv\\nextjs-auth-app\\node_modules\\next\\dist\\build\\utils.js',
+    'C:\\Users\\lionv\\nextjs-auth-app\\node_modules\\next\\dist\\server\\dev\\static-paths-worker.js',
+    'C:\\Users\\lionv\\nextjs-auth-app\\node_modules\\next\\dist\\compiled\\jest-worker\\processChild.js'
+  ]
+}
+ ✓ Compiled in 167ms (922 modules)

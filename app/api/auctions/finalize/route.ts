@@ -1,0 +1,230 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/lib/auth';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
+
+export async function POST(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { weekStart } = await request.json();
+
+    if (!weekStart) {
+      return NextResponse.json({ error: 'Week start date is required' }, { status: 400 });
+    }
+
+    // Verify admin permissions
+    const adminUser = await prisma.user.findUnique({
+      where: { id: session.user.id }
+    });
+
+    if (!adminUser?.isAdmin || !adminUser.familyId) {
+      return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+    }
+
+    const weekStartDate = new Date(weekStart);
+
+    // Get all active auctions for the week
+    const auctions = await prisma.choreAuction.findMany({
+      where: {
+        familyId: adminUser.familyId,
+        weekStart: weekStartDate,
+        status: 'active'
+      },
+      include: {
+        Chore: true,
+        ChoreBid: {
+          include: {
+            User: {
+              select: {
+                id: true,
+                name: true,
+                nickname: true
+              }
+            }
+          },
+          orderBy: { bidPoints: 'asc' }
+        }
+      }
+    });
+
+    if (auctions.length === 0) {
+      return NextResponse.json({ 
+        error: 'No active auctions found for this week' 
+      }, { status: 400 });
+    }
+
+    const results = {
+      finalized: 0,
+      assigned: 0,
+      increased: 0,
+      failed: 0,
+      details: [] as any[]
+    };
+
+    // Process each auction
+    for (const auction of auctions) {
+      try {
+        const lowestBid = auction.ChoreBid[0];
+        
+        if (lowestBid) {
+          // Auction has bids - assign to lowest bidder
+          const weekEndDate = new Date(weekStartDate);
+          weekEndDate.setDate(weekStartDate.getDate() + 6);
+          weekEndDate.setHours(23, 59, 59, 999);
+
+          // Update auction with winner
+          await prisma.choreAuction.update({
+            where: { id: auction.id },
+            data: {
+              status: 'completed',
+              winnerId: lowestBid.userId,
+              finalPoints: lowestBid.bidPoints
+            }
+          });
+
+          // Create chore assignment for the week (spread across 7 days)
+          const assignments = [];
+          for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
+            const assignmentDate = new Date(weekStartDate);
+            assignmentDate.setDate(weekStartDate.getDate() + dayOffset);
+            
+            const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            
+            assignments.push({
+              id: `assign_${Date.now()}_${dayOffset}_${Math.random().toString(36).substr(2, 9)}`,
+              userId: lowestBid.userId,
+              choreId: auction.choreId,
+              familyId: adminUser.familyId!,
+              date: assignmentDate,
+              dayOfWeek: dayNames[assignmentDate.getDay()],
+              completed: false,
+              createdAt: new Date()
+            });
+          }
+
+          await prisma.choreAssignment.createMany({
+            data: assignments
+          });
+
+          // Create notification for winner
+          await prisma.notification.create({
+            data: {
+              id: `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+              userId: lowestBid.userId,
+              type: 'AUCTION_WON',
+              title: 'You Won an Auction!',
+              message: `Congratulations! You won "${auction.Chore.name}" for ${lowestBid.bidPoints} points.`,
+              actionUrl: '/calendar',
+              read: false,
+              createdAt: new Date()
+            }
+          });
+
+          results.assigned++;
+          results.details.push({
+            choreName: auction.Chore.name,
+            winner: lowestBid.User.nickname || lowestBid.User.name,
+            winningBid: lowestBid.bidPoints,
+            originalPoints: auction.startPoints,
+            status: 'assigned'
+          });
+
+        } else {
+          // No bids - increase points by 10% and keep auction active
+          const newPoints = Math.round(auction.startPoints * 1.1);
+          
+          await prisma.choreAuction.update({
+            where: { id: auction.id },
+            data: {
+              startPoints: newPoints,
+              endsAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // Extend by 24 hours
+            }
+          });
+
+          // Update the chore's base points as well
+          await prisma.chore.update({
+            where: { id: auction.choreId },
+            data: {
+              points: newPoints
+            }
+          });
+
+          // Notify family members about point increase
+          const familyMembers = await prisma.user.findMany({
+            where: { familyId: adminUser.familyId },
+            select: { id: true }
+          });
+
+          const notifications = familyMembers.map(member => ({
+            id: `notif_${Date.now()}_${member.id}_${Math.random().toString(36).substr(2, 9)}`,
+            userId: member.id,
+            type: 'AUCTION_EXTENDED',
+            title: 'Chore Points Increased!',
+            message: `"${auction.Chore.name}" had no bids. Points increased to ${newPoints} (+10%). Auction extended 24 hours.`,
+            actionUrl: '/auctions',
+            read: false,
+            createdAt: new Date()
+          }));
+
+          await prisma.notification.createMany({
+            data: notifications
+          });
+
+          results.increased++;
+          results.details.push({
+            choreName: auction.Chore.name,
+            originalPoints: auction.startPoints,
+            newPoints: newPoints,
+            status: 'increased'
+          });
+        }
+
+        results.finalized++;
+
+      } catch (error) {
+        console.error(`Error processing auction ${auction.id}:`, error);
+        results.failed++;
+        results.details.push({
+          choreName: auction.Chore.name,
+          error: 'Processing failed',
+          status: 'failed'
+        });
+      }
+    }
+
+    // Log the finalization activity
+    await prisma.activityLog.create({
+      data: {
+        id: `log_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        userId: session.user.id,
+        familyId: adminUser.familyId,
+        action: 'AUCTIONS_FINALIZED',
+        description: `Finalized ${results.finalized} auctions for week of ${weekStartDate.toLocaleDateString()}`,
+        metadata: JSON.stringify({
+          weekStart: weekStartDate,
+          results,
+          finalizedAt: new Date()
+        })
+      }
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: `Successfully processed ${results.finalized} auctions`,
+      results
+    });
+
+  } catch (error) {
+    console.error('Error finalizing auctions:', error);
+    return NextResponse.json(
+      { error: 'Failed to finalize auctions' },
+      { status: 500 }
+    );
+  }
+}

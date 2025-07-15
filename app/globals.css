@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Ensure text is visible */
+body {
+  color: #1f2937; /* Dark gray text */
+  background-color: #f9fafb; /* Light gray background */
+}
+
+/* Override any white text */
+* {
+  color: inherit;
+}
+
+/* Ensure form inputs are visible */
+input, textarea, select {
+  color: #1f2937 !important;
+  background-color: white !important;
+}
+
+/* Button text should be visible */
+button {
+  color: inherit;
+}
