@@ -23,7 +23,9 @@ export interface RecurringChore {
   recurrenceDays?: string | null;
   recurrenceEndDate?: Date | null;
   lastGenerated?: Date | null;
-  isActive: boolean;
+  isActive?: boolean; // Make optional to handle missing field
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 // Get next occurrence date based on recurrence pattern
@@ -107,7 +109,7 @@ export function generateChoresForDateRange(
   const dates: Date[] = [];
   const pattern = parseRecurrencePattern(recurringChore);
   
-  if (!pattern || !recurringChore.isActive) return dates;
+  if (!pattern || recurringChore.isActive === false) return dates;
   
   let currentDate = new Date(recurringChore.lastGenerated || startDate);
   

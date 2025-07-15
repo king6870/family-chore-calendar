@@ -167,31 +167,12 @@ export async function PUT(request: NextRequest) {
     const whereClause = {
       familyId: currentUser.family.id,
       isRecurring: true,
-      isActive: true,
+      // Only filter by isActive if the field exists in the schema
       ...(choreId && { id: choreId })
     };
 
     const recurringChores = await prisma.chore.findMany({
-      where: whereClause,
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        points: true,
-        minAge: true,
-        difficulty: true,
-        familyId: true,
-        basePoints: true,
-        isRecurring: true,
-        recurrenceType: true,
-        recurrenceInterval: true,
-        recurrenceDays: true,
-        recurrenceEndDate: true,
-        lastGenerated: true,
-        isActive: true,
-        createdAt: true,
-        updatedAt: true
-      }
+      where: whereClause
     });
 
     let totalGenerated = 0;
