@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import FloatingBidPanel from './FloatingBidPanel';
+import SmartBiddingPanel from './SmartBiddingPanel';
 
 interface ChoreBid {
   id: string;
@@ -63,6 +64,7 @@ export default function ChoreAuction({ currentUser }: ChoreAuctionProps) {
   const [message, setMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
   const [bidAmounts, setBidAmounts] = useState<{ [key: string]: number }>({});
   const [showFloatingPanel, setShowFloatingPanel] = useState(false);
+  const [showSmartBidding, setShowSmartBidding] = useState<{ [key: string]: boolean }>({});
 
   // Get start of week (Sunday)
   function getStartOfWeek(date: Date): Date {
@@ -582,10 +584,37 @@ export default function ChoreAuction({ currentUser }: ChoreAuctionProps) {
                           </div>
                         ) : (
                           <div className="space-y-3">
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                            {/* Smart Bidding Toggle */}
+                            <div className="flex items-center justify-between">
+                              <label className="block text-sm font-medium text-gray-700">
                                 Bid Amount (points)
                               </label>
+                              <button
+                                type="button"
+                                onClick={() => setShowSmartBidding(prev => ({
+                                  ...prev,
+                                  [auction.id]: !prev[auction.id]
+                                }))}
+                                className="text-xs px-2 py-1 bg-purple-100 text-purple-700 rounded-full hover:bg-purple-200 transition-colors"
+                              >
+                                🧠 {showSmartBidding[auction.id] ? 'Hide' : 'Smart'} Assistant
+                              </button>
+                            </div>
+
+                            {/* Smart Bidding Panel */}
+                            <SmartBiddingPanel
+                              auctionId={auction.id}
+                              currentBidAmount={bidAmounts[auction.id] || 0}
+                              onBidRecommendation={(recommendedBid) => {
+                                setBidAmounts(prev => ({
+                                  ...prev,
+                                  [auction.id]: recommendedBid
+                                }));
+                              }}
+                              isVisible={showSmartBidding[auction.id] || false}
+                            />
+
+                            <div>
                               <input
                                 type="number"
                                 min="1"
