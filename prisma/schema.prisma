@@ -81,20 +81,29 @@ model Family {
 }
 
 model Chore {
-  id           String            @id @default(cuid())
-  name         String
-  description  String?
-  points       Int
-  minAge       Int               @default(0)
-  difficulty   String            @default("Easy")
-  createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
-  familyId     String
-  basePoints   Int               @default(10)
-  isRecurring  Boolean           @default(false)
-  family       Family            @relation(fields: [familyId], references: [id], onDelete: Cascade)
-  assignments  ChoreAssignment[]
-  ChoreAuction ChoreAuction[]
+  id                String            @id @default(cuid())
+  name              String
+  description       String?
+  points            Int
+  minAge            Int               @default(0)
+  difficulty        String            @default("Easy")
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  familyId          String
+  basePoints        Int               @default(10)
+  isRecurring       Boolean           @default(false)
+  
+  // Recurring chore fields
+  recurrenceType    String?           // 'daily', 'weekly', 'biweekly', 'monthly', 'custom'
+  recurrenceInterval Int?             // For custom intervals (every N days/weeks)
+  recurrenceDays    String?           // JSON array of days for weekly/biweekly ['monday', 'wednesday']
+  recurrenceEndDate DateTime?         // When to stop recurring (optional)
+  lastGenerated     DateTime?         // Last time chores were generated from this pattern
+  isActive          Boolean           @default(true) // Can disable recurring without deleting
+  
+  family            Family            @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  assignments       ChoreAssignment[]
+  ChoreAuction      ChoreAuction[]
 }
 
 model ChoreAssignment {

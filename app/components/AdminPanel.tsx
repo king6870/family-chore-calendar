@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import PointsManager from './PointsManager'
 import ChoreAuction from './ChoreAuction'
+import RecurringChoreManager from './RecurringChoreManager'
 
 interface User {
   id: string
@@ -248,6 +249,7 @@ export default function AdminPanel({ currentUser, onRefresh }: AdminPanelProps) 
           {[
             { id: 'members', label: '👥 Members', icon: '👥' },
             { id: 'chores', label: '📋 Chores', icon: '📋' },
+            { id: 'recurring', label: '🔄 Recurring Chores', icon: '🔄' },
             { id: 'points', label: '🏆 Points Manager', icon: '🏆' },
             { id: 'auctions', label: '🏛️ Chore Auctions', icon: '🏛️' },
             ...(currentUser.isOwner ? [{ id: 'danger', label: '⚠️ Danger Zone', icon: '⚠️' }] : [])
@@ -494,6 +496,13 @@ export default function AdminPanel({ currentUser, onRefresh }: AdminPanelProps) 
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Recurring Chores Tab */}
+      {activeTab === 'recurring' && (
+        <div>
+          <RecurringChoreManager />
         </div>
       )}
 
