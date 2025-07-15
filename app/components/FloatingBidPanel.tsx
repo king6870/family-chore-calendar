@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 interface ChoreBid {
   id: string;
@@ -38,48 +38,55 @@ interface ChoreAuction {
   ChoreBid: ChoreBid[];
 }
 
-interface User {
-  id: string;
-  name: string;
-  nickname: string;
-  age: number;
-  isAdmin: boolean;
-  isOwner: boolean;
-}
-
 interface FloatingBidPanelProps {
-  currentUser: User;
   auctions: ChoreAuction[];
-  onPlaceBid: (auctionId: string, bidAmount: number) => Promise<void>;
-  loading: boolean;
+  currentUserId: string;
+  isVisible: boolean;
+  onToggle: () => void;
 }
 
-export default function FloatingBidPanel({ currentUser, auctions, onPlaceBid, loading }: FloatingBidPanelProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [bidAmounts, setBidAmounts] = useState<{ [key: string]: number }>({});
+export default function FloatingBidPanel({ auctions, currentUserId, isVisible, onToggle }: FloatingBidPanelProps) {
+  const [activeTab, setActiveTab] = useState<'my-bids' | 'winning' | 'all-auctions'>('my-bids');
 
-  // Get user's active bids
-  const userBids = auctions.flatMap(auction => 
-    auction.ChoreBid
-      .filter(bid => bid.User.id === currentUser.id)
-      .map(bid => ({
-        ...bid,
-        auctionId: auction.id,
-        choreName: auction.Chore.name,
-        isWinning: auction.ChoreBid[0]?.id === bid.id,
-        timeRemaining: getTimeRemaining(auction.endsAt),
-        hasEnded: new Date() > new Date(auction.endsAt)
-      }))
+  // Get auctions where user has placed bids
+  const myBidAuctions = auctions.filter(auction => 
+    auction.ChoreBid.some(bid => bid.User.id === currentUserId)
   );
 
-  // Get auctions user can bid on
-  const availableAuctions = auctions.filter(auction => 
-    auction.status === 'active' && 
-    new Date() <= new Date(auction.endsAt) &&
-    (!currentUser.age || currentUser.age >= auction.Chore.minAge)
-  );
+  // Get auctions where user is currently winning
+  const winningAuctions = auctions.filter(auction => {
+    const lowestBid = auction.ChoreBid.reduce((lowest, bid) => 
+      !lowest || bid.bidPoints < lowest.bidPoints ? bid : lowest, 
+      null as ChoreBid | null
+    );
+    return lowestBid?.User.id === currentUserId;
+  });
 
-  function getTimeRemaining(endsAt: string): string {
+  // Get user's bid for a specific auction
+  const getUserBid = (auction: ChoreAuction) => {
+    return auction.ChoreBid
+      .filter(bid => bid.User.id === currentUserId)
+      .sort((a, b) => a.bidPoints - b.bidPoints)[0]; // Get lowest bid from user
+  };
+
+  // Check if user is winning an auction
+  const isUserWinning = (auction: ChoreAuction) => {
+    const lowestBid = auction.ChoreBid.reduce((lowest, bid) => 
+      !lowest || bid.bidPoints < lowest.bidPoints ? bid : lowest, 
+      null as ChoreBid | null
+    );
+    return lowestBid?.User.id === currentUserId;
+  };
+
+  // Get the current lowest bid for an auction
+  const getLowestBid = (auction: ChoreAuction) => {
+    return auction.ChoreBid.reduce((lowest, bid) => 
+      !lowest || bid.bidPoints < lowest.bidPoints ? bid : lowest, 
+      null as ChoreBid | null
+    );
+  };
+
+  const formatTimeRemaining = (endsAt: string) => {
     const now = new Date();
     const end = new Date(endsAt);
     const diff = end.getTime() - now.getTime();
@@ -92,129 +99,198 @@ export default function FloatingBidPanel({ currentUser, auctions, onPlaceBid, lo
     if (hours > 24) {
       const days = Math.floor(hours / 24);
       return `${days}d ${hours % 24}h`;
-    } else if (hours > 0) {
-      return `${hours}h ${minutes}m`;
-    } else {
-      return `${minutes}m`;
     }
-  }
-
-  const handleQuickBid = async (auctionId: string) => {
-    const bidAmount = bidAmounts[auctionId];
-    if (!bidAmount || bidAmount <= 0) return;
     
-    await onPlaceBid(auctionId, bidAmount);
-    setBidAmounts(prev => ({ ...prev, [auctionId]: 0 }));
+    return `${hours}h ${minutes}m`;
   };
 
+  if (!isVisible) {
+    return (
+      <button
+        onClick={onToggle}
+        className="fixed top-4 right-4 z-50 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg transition-all duration-200 hover:scale-105"
+        title="Open Bid Panel"
+      >
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+      </button>
+    );
+  }
+
   return (
-    <div className="fixed top-4 right-4 z-50">
-      {/* Floating Panel */}
-      <div className={`bg-white rounded-lg shadow-xl border transition-all duration-300 ${
-        isExpanded ? 'w-80 h-96' : 'w-16 h-16'
-      }`}>
-        
-        {/* Toggle Button */}
+    <div className="fixed top-4 right-4 z-50 w-96 max-h-[80vh] bg-white rounded-lg shadow-2xl border border-gray-200 overflow-hidden">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 flex justify-between items-center">
+        <h3 className="text-lg font-semibold">🏛️ My Auction Dashboard</h3>
         <button
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="absolute top-2 right-2 w-12 h-12 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors flex items-center justify-center shadow-lg"
+          onClick={onToggle}
+          className="text-white hover:text-gray-200 transition-colors"
+          title="Close Panel"
         >
-          {isExpanded ? '✕' : '🏛️'}
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
         </button>
+      </div>
 
-        {/* Panel Content */}
-        {isExpanded && (
-          <div className="p-4 pt-16 h-full overflow-y-auto">
-            <h3 className="font-bold text-gray-800 mb-3">Quick Bid Panel</h3>
-            
-            {/* User's Active Bids */}
-            {userBids.length > 0 && (
-              <div className="mb-4">
-                <h4 className="font-medium text-gray-700 mb-2 text-sm">Your Bids ({userBids.length})</h4>
-                <div className="space-y-2">
-                  {userBids.slice(0, 3).map((bid) => (
-                    <div key={bid.id} className={`p-2 rounded text-xs ${
-                      bid.isWinning ? 'bg-green-50 border border-green-200' : 'bg-gray-50'
-                    }`}>
-                      <div className="font-medium truncate">{bid.choreName}</div>
-                      <div className="flex justify-between items-center">
-                        <span className={bid.isWinning ? 'text-green-600' : 'text-gray-600'}>
-                          {bid.bidPoints}pts {bid.isWinning && '🥇'}
-                        </span>
-                        <span className="text-gray-500">{bid.timeRemaining}</span>
-                      </div>
-                    </div>
-                  ))}
-                  {userBids.length > 3 && (
-                    <div className="text-xs text-gray-500 text-center">
-                      +{userBids.length - 3} more bids
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+      {/* Tabs */}
+      <div className="flex border-b border-gray-200">
+        <button
+          onClick={() => setActiveTab('my-bids')}
+          className={`flex-1 py-3 px-4 text-sm font-medium transition-colors ${
+            activeTab === 'my-bids'
+              ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
+              : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          My Bids ({myBidAuctions.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('winning')}
+          className={`flex-1 py-3 px-4 text-sm font-medium transition-colors ${
+            activeTab === 'winning'
+              ? 'bg-green-50 text-green-600 border-b-2 border-green-600'
+              : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          Winning ({winningAuctions.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('all-auctions')}
+          className={`flex-1 py-3 px-4 text-sm font-medium transition-colors ${
+            activeTab === 'all-auctions'
+              ? 'bg-purple-50 text-purple-600 border-b-2 border-purple-600'
+              : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          All ({auctions.length})
+        </button>
+      </div>
 
-            {/* Quick Bid Section */}
-            {availableAuctions.length > 0 && (
-              <div>
-                <h4 className="font-medium text-gray-700 mb-2 text-sm">Quick Bid</h4>
-                <div className="space-y-2">
-                  {availableAuctions.slice(0, 2).map((auction) => {
-                    const lowestBid = auction.ChoreBid[0];
-                    const maxBid = lowestBid ? lowestBid.bidPoints - 1 : auction.startPoints;
-                    
-                    return (
-                      <div key={auction.id} className="p-2 bg-blue-50 rounded text-xs">
-                        <div className="font-medium truncate mb-1">{auction.Chore.name}</div>
-                        <div className="flex items-center space-x-1">
-                          <input
-                            type="number"
-                            min="1"
-                            max={maxBid}
-                            value={bidAmounts[auction.id] || ''}
-                            onChange={(e) => setBidAmounts(prev => ({
-                              ...prev,
-                              [auction.id]: parseInt(e.target.value) || 0
-                            }))}
-                            className="w-16 px-1 py-1 text-xs border rounded"
-                            placeholder={`Max: ${maxBid}`}
-                          />
-                          <button
-                            onClick={() => handleQuickBid(auction.id)}
-                            disabled={loading || !bidAmounts[auction.id] || bidAmounts[auction.id] <= 0}
-                            className={`px-2 py-1 text-xs rounded transition-colors ${
-                              loading || !bidAmounts[auction.id] || bidAmounts[auction.id] <= 0
-                                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                : 'bg-blue-600 hover:bg-blue-700 text-white'
-                            }`}
-                          >
-                            Bid
-                          </button>
-                        </div>
-                        <div className="text-gray-500 mt-1">
-                          Current: {lowestBid ? `${lowestBid.bidPoints}pts` : 'No bids'}
-                        </div>
-                      </div>
-                    );
-                  })}
-                  {availableAuctions.length > 2 && (
-                    <div className="text-xs text-gray-500 text-center">
-                      +{availableAuctions.length - 2} more auctions
+      {/* Content */}
+      <div className="max-h-96 overflow-y-auto">
+        {activeTab === 'my-bids' && (
+          <div className="p-4 space-y-3">
+            {myBidAuctions.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <div className="text-4xl mb-2">🤷‍♂️</div>
+                <p>No bids placed yet</p>
+                <p className="text-sm">Start bidding on auctions below!</p>
+              </div>
+            ) : (
+              myBidAuctions.map(auction => {
+                const userBid = getUserBid(auction);
+                const isWinning = isUserWinning(auction);
+                const lowestBid = getLowestBid(auction);
+                
+                return (
+                  <div key={auction.id} className={`p-3 rounded-lg border-2 ${
+                    isWinning ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-gray-50'
+                  }`}>
+                    <div className="flex justify-between items-start mb-2">
+                      <h4 className="font-medium text-sm">{auction.Chore.name}</h4>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        isWinning 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {isWinning ? '🏆 Winning' : '📊 Bidding'}
+                      </span>
                     </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* No Content Message */}
-            {userBids.length === 0 && availableAuctions.length === 0 && (
-              <div className="text-center text-gray-500 text-sm py-8">
-                <div className="text-2xl mb-2">🏛️</div>
-                <p>No active auctions or bids</p>
-              </div>
+                    <div className="space-y-1 text-xs text-gray-600">
+                      <div>Your bid: <span className="font-medium text-blue-600">{userBid?.bidPoints} pts</span></div>
+                      <div>Current lowest: <span className="font-medium">{lowestBid?.bidPoints} pts</span></div>
+                      <div>Time left: <span className="font-medium">{formatTimeRemaining(auction.endsAt)}</span></div>
+                    </div>
+                  </div>
+                );
+              })
             )}
           </div>
         )}
+
+        {activeTab === 'winning' && (
+          <div className="p-4 space-y-3">
+            {winningAuctions.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <div className="text-4xl mb-2">🎯</div>
+                <p>Not winning any auctions yet</p>
+                <p className="text-sm">Place lower bids to win!</p>
+              </div>
+            ) : (
+              winningAuctions.map(auction => {
+                const userBid = getUserBid(auction);
+                
+                return (
+                  <div key={auction.id} className="p-3 rounded-lg border-2 border-green-200 bg-green-50">
+                    <div className="flex justify-between items-start mb-2">
+                      <h4 className="font-medium text-sm">{auction.Chore.name}</h4>
+                      <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        🏆 Winning
+                      </span>
+                    </div>
+                    <div className="space-y-1 text-xs text-gray-600">
+                      <div>Your winning bid: <span className="font-medium text-green-600">{userBid?.bidPoints} pts</span></div>
+                      <div>Original points: <span className="font-medium">{auction.startPoints} pts</span></div>
+                      <div>Time left: <span className="font-medium">{formatTimeRemaining(auction.endsAt)}</span></div>
+                      <div className="text-green-600 font-medium">💰 You'll save {auction.startPoints - (userBid?.bidPoints || 0)} points!</div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        )}
+
+        {activeTab === 'all-auctions' && (
+          <div className="p-4 space-y-3">
+            {auctions.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <div className="text-4xl mb-2">📭</div>
+                <p>No active auctions</p>
+                <p className="text-sm">Check back later!</p>
+              </div>
+            ) : (
+              auctions.map(auction => {
+                const lowestBid = getLowestBid(auction);
+                const userBid = getUserBid(auction);
+                const isWinning = isUserWinning(auction);
+                
+                return (
+                  <div key={auction.id} className="p-3 rounded-lg border border-gray-200 bg-gray-50">
+                    <div className="flex justify-between items-start mb-2">
+                      <h4 className="font-medium text-sm">{auction.Chore.name}</h4>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        auction.status === 'ACTIVE' 
+                          ? 'bg-blue-100 text-blue-800' 
+                          : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {auction.status}
+                      </span>
+                    </div>
+                    <div className="space-y-1 text-xs text-gray-600">
+                      <div>Current lowest: <span className="font-medium">{lowestBid?.bidPoints || auction.startPoints} pts</span></div>
+                      {userBid && (
+                        <div>Your bid: <span className={`font-medium ${isWinning ? 'text-green-600' : 'text-blue-600'}`}>
+                          {userBid.bidPoints} pts {isWinning && '🏆'}
+                        </span></div>
+                      )}
+                      <div>Time left: <span className="font-medium">{formatTimeRemaining(auction.endsAt)}</span></div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Footer */}
+      <div className="bg-gray-50 px-4 py-3 border-t border-gray-200">
+        <div className="text-xs text-gray-500 text-center">
+          🏛️ Auction Dashboard • Real-time updates
+        </div>
       </div>
     </div>
   );

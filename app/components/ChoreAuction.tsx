@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import FloatingBidPanel from './FloatingBidPanel';
 
 interface ChoreBid {
   id: string;
@@ -61,6 +62,7 @@ export default function ChoreAuction({ currentUser }: ChoreAuctionProps) {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error' | 'info'; text: string } | null>(null);
   const [bidAmounts, setBidAmounts] = useState<{ [key: string]: number }>({});
+  const [showFloatingPanel, setShowFloatingPanel] = useState(false);
 
   // Get start of week (Sunday)
   function getStartOfWeek(date: Date): Date {
@@ -658,6 +660,14 @@ export default function ChoreAuction({ currentUser }: ChoreAuctionProps) {
           </div>
         </div>
       </div>
+
+      {/* Floating Bid Panel */}
+      <FloatingBidPanel
+        auctions={auctions}
+        currentUserId={currentUser.id}
+        isVisible={showFloatingPanel}
+        onToggle={() => setShowFloatingPanel(!showFloatingPanel)}
+      />
     </div>
   );
 }
