@@ -219,11 +219,8 @@ export async function PUT(request: NextRequest) {
         }
       }
 
-      // Update lastGenerated timestamp
-      await prisma.chore.update({
-        where: { id: recurringChore.id },
-        data: { lastGenerated: end }
-      });
+      // Note: lastGenerated field update removed for production compatibility
+      // This field will be added in future schema migrations
     }
 
     return NextResponse.json({
