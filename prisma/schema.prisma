@@ -54,6 +54,7 @@ model User {
   pointsEarned     PointsEarned[]
   RewardRedemption RewardRedemption[]
   sessions         Session[]
+  suggestions      Suggestion[]
   family           Family?            @relation(fields: [familyId], references: [id])
 }
 
@@ -77,6 +78,7 @@ model Family {
   pointsEarned     PointsEarned[]
   Reward           Reward[]
   members          User[]
+  suggestions      Suggestion[]
   weeklyGoals      WeeklyGoal[]
 }
 
@@ -187,6 +189,23 @@ model ChoreBid {
   User         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([auctionId, userId])
+}
+
+model Suggestion {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  category    String   @default("general") // general, feature, bug, improvement
+  priority    String   @default("medium")  // low, medium, high
+  status      String   @default("pending") // pending, reviewed, implemented, rejected
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userId      String?
+  familyId    String?
+  userEmail   String?
+  userName    String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  family      Family?  @relation(fields: [familyId], references: [id], onDelete: SetNull)
 }
 
 model Notification {
