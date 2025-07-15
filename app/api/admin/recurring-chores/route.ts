@@ -172,7 +172,26 @@ export async function PUT(request: NextRequest) {
     };
 
     const recurringChores = await prisma.chore.findMany({
-      where: whereClause
+      where: whereClause,
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        points: true,
+        minAge: true,
+        difficulty: true,
+        familyId: true,
+        basePoints: true,
+        isRecurring: true,
+        recurrenceType: true,
+        recurrenceInterval: true,
+        recurrenceDays: true,
+        recurrenceEndDate: true,
+        lastGenerated: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true
+      }
     });
 
     let totalGenerated = 0;
