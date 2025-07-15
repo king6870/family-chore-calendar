@@ -53,25 +53,24 @@ export async function POST(request: NextRequest) {
       suggestionData.userName = 'Anonymous User';
     }
 
-    // Try to create suggestion, handle case where table doesn't exist
+    // Try to create suggestion in database
     try {
-      // Check if Suggestion model exists by attempting to access it
-      const suggestion = await (prisma as any).suggestion?.create({
+      const suggestion = await prisma.suggestion.create({
         data: suggestionData
       });
 
-      if (suggestion) {
-        return NextResponse.json({ 
-          success: true,
-          message: 'Thank you for your suggestion! Your feedback has been submitted and will be reviewed.' 
-        });
-      } else {
-        throw new Error('Suggestion model not available');
-      }
+      return NextResponse.json({ 
+        success: true,
+        message: 'Thank you for your suggestion! Your feedback has been submitted and will be reviewed.',
+        suggestionId: suggestion.id
+      });
+
     } catch (dbError) {
-      // If suggestion table doesn't exist, log the suggestion data for manual review
-      console.log('SUGGESTION SUBMITTED (Database table not available):', {
+      // If suggestion table doesn't exist or there's a database error, log for manual review
+      console.error('Database error creating suggestion:', dbError);
+      console.log('SUGGESTION SUBMITTED (Database fallback):', {
         timestamp: new Date().toISOString(),
+        error: dbError instanceof Error ? dbError.message : 'Unknown error',
         ...suggestionData
       });
 
