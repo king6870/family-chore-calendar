@@ -45,3 +45,7 @@ next-env.d.ts
 # testing and migration scripts
 test-*.js
 migrate-*.js
+
+# environment variables documentation (contains secrets)
+STAGING_ENV_VARS.md
+*_ENV_VARS.md
