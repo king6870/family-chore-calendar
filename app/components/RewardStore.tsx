@@ -56,7 +56,7 @@ export default function RewardStore() {
       const [rewardsRes, claimsRes, userRes] = await Promise.all([
         fetch('/api/admin/rewards'),
         fetch('/api/rewards/claim'),
-        fetch('/api/user/profile')
+        fetch('/api/user')  // Changed from /api/user/profile to /api/user for consistency
       ]);
 
       if (rewardsRes.ok) {
@@ -71,7 +71,7 @@ export default function RewardStore() {
 
       if (userRes.ok) {
         const userData = await userRes.json();
-        setUser(userData.user);
+        setUser(userData.user);  // Changed from userData.user to userData.user since main API returns { user: {...} }
       }
     } catch (error) {
       console.error('Error fetching data:', error);

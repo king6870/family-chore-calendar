@@ -30,7 +30,8 @@ export async function GET() {
         age: user.age,
         familyId: user.familyId,
         isAdmin: user.isAdmin,
-        isOwner: user.isOwner
+        isOwner: user.isOwner,
+        totalPoints: user.totalPoints || 0  // Added totalPoints for rewards system
       },
       family: user.family ? {
         id: user.family.id,
