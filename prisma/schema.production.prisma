@@ -1,3 +1,6 @@
+// Prisma schema for Production PostgreSQL Database
+// This schema is used for production database migrations
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,14 +16,15 @@ model Account {
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String?
-  access_token      String?
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String?
+  id_token          String? @db.Text
   session_state     String?
-  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -34,27 +38,28 @@ model Session {
 }
 
 model User {
-  id               String             @id @default(cuid())
-  name             String?
-  email            String?            @unique
-  emailVerified    DateTime?
-  image            String?
-  familyId         String?
-  age              Int?
-  nickname         String?
-  isAdmin          Boolean            @default(false)
-  isOwner          Boolean            @default(false)
-  totalPoints      Int                @default(0)
-  accounts         Account[]
-  ActivityLog      ActivityLog[]
-  choreAssignments ChoreAssignment[]
-  ChoreAuction     ChoreAuction[]
-  ChoreBid         ChoreBid[]
-  Notification     Notification[]
-  pointsEarned     PointsEarned[]
-  RewardRedemption RewardRedemption[]
-  sessions         Session[]
-  family           Family?            @relation(fields: [familyId], references: [id])
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  familyId      String?
+  age           Int?
+  nickname      String?
+  isAdmin       Boolean   @default(false)
+  isOwner       Boolean   @default(false)
+  totalPoints   Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts            Account[]
+  sessions            Session[]
+  family              Family?              @relation(fields: [familyId], references: [id])
+  choreAssignments    ChoreAssignment[]
+  pointsEarned        PointsEarned[]
+  auctionBids         AuctionBid[]
+  activityLogs        ActivityLog[]
+  suggestions         Suggestion[]
 }
 
 model VerificationToken {
@@ -66,52 +71,57 @@ model VerificationToken {
 }
 
 model Family {
-  id               String            @id @default(cuid())
-  name             String
-  inviteCode       String            @unique
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
+  id         String   @id @default(cuid())
+  name       String
+  inviteCode String   @unique
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  members          User[]
   chores           Chore[]
   choreAssignments ChoreAssignment[]
-  ChoreAuction     ChoreAuction[]
   pointsEarned     PointsEarned[]
-  Reward           Reward[]
-  members          User[]
+  auctions         Auction[]
+  auctionBids      AuctionBid[]
+  activityLogs     ActivityLog[]
   weeklyGoals      WeeklyGoal[]
+  suggestions      Suggestion[]
 }
 
 model Chore {
-  id           String            @id @default(cuid())
-  name         String
-  description  String?
-  points       Int
-  minAge       Int               @default(0)
-  difficulty   String            @default("Easy")
-  createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
-  familyId     String
-  basePoints   Int               @default(10)
-  isRecurring  Boolean           @default(false)
-  family       Family            @relation(fields: [familyId], references: [id], onDelete: Cascade)
-  assignments  ChoreAssignment[]
-  ChoreAuction ChoreAuction[]
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  points      Int
+  minAge      Int?
+  difficulty  String   @default("medium")
+  familyId    String
+  basePoints  Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  family           Family            @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  choreAssignments ChoreAssignment[]
+  auctions         Auction[]
 }
 
 model ChoreAssignment {
   id          String    @id @default(cuid())
+  userId      String
+  choreId     String
+  familyId    String
   date        DateTime
   dayOfWeek   String
   completed   Boolean   @default(false)
   completedAt DateTime?
   createdAt   DateTime  @default(now())
-  choreId     String
-  userId      String
-  familyId    String
-  chore       Chore     @relation(fields: [choreId], references: [id], onDelete: Cascade)
-  family      Family    @relation(fields: [familyId], references: [id], onDelete: Cascade)
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  updatedAt   DateTime  @updatedAt
 
-  @@unique([choreId, userId, date])
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chore  Chore  @relation(fields: [choreId], references: [id], onDelete: Cascade)
+  family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, choreId, date])
 }
 
 model PointsEarned {
@@ -123,96 +133,86 @@ model PointsEarned {
   userId    String
   familyId  String
   choreId   String?
-  family    Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-model WeeklyGoal {
-  id         String   @id @default(cuid())
-  weekStart  DateTime
-  pointsGoal Int
-  createdAt  DateTime @default(now())
-  familyId   String
-  family     Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
-
-  @@unique([familyId, weekStart])
-}
-
-model ActivityLog {
-  id          String   @id
-  action      String
-  description String
-  metadata    String?
-  createdAt   DateTime @default(now())
-  userId      String
-  familyId    String?
-  User        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model ChoreAuction {
-  id          String     @id
-  weekStart   DateTime
-  status      String     @default("active")
-  startPoints Int
-  finalPoints Int?
-  winnerId    String?
-  createdAt   DateTime   @default(now())
-  endsAt      DateTime
+model Auction {
+  id          String    @id @default(cuid())
   choreId     String
   familyId    String
-  Chore       Chore      @relation(fields: [choreId], references: [id], onDelete: Cascade)
-  Family      Family     @relation(fields: [familyId], references: [id], onDelete: Cascade)
-  User        User?      @relation(fields: [winnerId], references: [id])
-  ChoreBid    ChoreBid[]
+  weekStart   DateTime
+  endTime     DateTime
+  status      String    @default("active")
+  title       String?
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  Chore  Chore        @relation(fields: [choreId], references: [id], onDelete: Cascade)
+  family Family       @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  bids   AuctionBid[]
 
   @@unique([choreId, weekStart])
 }
 
-model ChoreBid {
-  id           String       @id
-  bidPoints    Int
-  createdAt    DateTime     @default(now())
-  auctionId    String
-  userId       String
-  ChoreAuction ChoreAuction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
-  User         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+model AuctionBid {
+  id        String   @id @default(cuid())
+  auctionId String
+  userId    String
+  familyId  String
+  bidPoints Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  auction Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  family  Family  @relation(fields: [familyId], references: [id], onDelete: Cascade)
 
   @@unique([auctionId, userId])
 }
 
-model Notification {
-  id        String   @id
-  type      String
-  title     String
-  message   String
-  read      Boolean  @default(false)
-  actionUrl String?
-  createdAt DateTime @default(now())
+model ActivityLog {
+  id        String   @id @default(cuid())
   userId    String
-  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  familyId  String
+  action    String
+  details   String?
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
 }
 
-model Reward {
-  id               String             @id
-  name             String
-  description      String?
-  pointsCost       Int
-  isActive         Boolean            @default(true)
-  createdAt        DateTime           @default(now())
-  familyId         String
-  Family           Family             @relation(fields: [familyId], references: [id], onDelete: Cascade)
-  RewardRedemption RewardRedemption[]
+model WeeklyGoal {
+  id        String   @id @default(cuid())
+  familyId  String
+  weekStart DateTime
+  goalType  String   @default("points")
+  target    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  @@unique([familyId, weekStart])
 }
 
-model RewardRedemption {
-  id          String    @id
-  pointsSpent Int
-  status      String    @default("pending")
-  createdAt   DateTime  @default(now())
-  completedAt DateTime?
-  userId      String
-  rewardId    String
-  familyId    String
-  Reward      Reward    @relation(fields: [rewardId], references: [id], onDelete: Cascade)
-  User        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+model Suggestion {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  category    String   @default("general")
+  priority    String   @default("medium")
+  status      String   @default("pending")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userId      String?
+  familyId    String?
+  userEmail   String?
+  userName    String?
+
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  family Family? @relation(fields: [familyId], references: [id], onDelete: SetNull)
 }

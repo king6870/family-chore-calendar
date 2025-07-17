@@ -53,36 +53,28 @@ export async function POST(request: NextRequest) {
       suggestionData.userName = 'Anonymous User';
     }
 
-    // Try to create suggestion in database (fully backward compatible)
+    // Create suggestion in database (table now exists in production)
     try {
-      // Check if suggestion model exists and create suggestion
-      if ('suggestion' in prisma && typeof (prisma as any).suggestion?.create === 'function') {
-        const suggestion = await (prisma as any).suggestion.create({
-          data: suggestionData
-        });
-
-        return NextResponse.json({ 
-          success: true,
-          message: 'Thank you for your suggestion! Your feedback has been submitted and will be reviewed.',
-          suggestionId: suggestion.id
-        });
-      } else {
-        throw new Error('Suggestion table not available in current schema');
-      }
-
-    } catch (dbError) {
-      // Fallback: Log suggestion for manual review (works without database table)
-      console.log('SUGGESTION SUBMITTED (Database table not available):', {
-        timestamp: new Date().toISOString(),
-        error: dbError instanceof Error ? dbError.message : 'Schema compatibility issue',
-        suggestion: suggestionData
+      const suggestion = await prisma.suggestion.create({
+        data: suggestionData
       });
 
-      // Still return success to user - suggestion is logged for manual review
       return NextResponse.json({ 
         success: true,
-        message: 'Thank you for your suggestion! Your feedback has been logged and will be reviewed.' 
+        message: 'Thank you for your suggestion! Your feedback has been submitted and will be reviewed.',
+        suggestionId: suggestion.id
       });
+
+    } catch (dbError) {
+      console.error('Error creating suggestion:', dbError);
+      
+      return NextResponse.json(
+        { 
+          success: false,
+          error: 'Failed to submit suggestion. Please try again later.' 
+        },
+        { status: 500 }
+      );
     }
 
   } catch (error) {
