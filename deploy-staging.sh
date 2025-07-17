@@ -1,55 +1,88 @@
 #!/bin/bash
 
-echo "🚀 Deploying Staging Branch to GitHub..."
-echo "This will create your staging environment on Vercel"
+echo "🧪 STAGING DEPLOYMENT"
+echo "===================="
+echo ""
+echo "🎯 Target: Staging Environment"
+echo "🌐 URL: https://family-chore-calendar-git-staging-duckys-projects-22b2b673.vercel.app"
+echo "🔒 Safe: No production users affected"
 echo ""
 
 # Check if we're on staging branch
 current_branch=$(git branch --show-current)
 if [ "$current_branch" != "staging" ]; then
-    echo "❌ Error: You must be on the staging branch"
-    echo "Current branch: $current_branch"
-    echo "Run: git checkout staging"
-    exit 1
+    echo "⚠️  You're currently on branch: $current_branch"
+    echo "🔄 Switching to staging branch..."
+    git checkout staging
+    if [ $? -ne 0 ]; then
+        echo "❌ Failed to switch to staging branch"
+        echo "💡 Creating staging branch from current branch..."
+        git checkout -b staging
+    fi
 fi
 
-# Get GitHub credentials
-echo "📋 GitHub Authentication Required"
-echo "Go to: https://github.com/settings/tokens"
-echo "Create token with 'repo' scope if you don't have one"
+# Check for uncommitted changes
+if ! git diff-index --quiet HEAD --; then
+    echo "⚠️  You have uncommitted changes"
+    echo "📋 Uncommitted files:"
+    git status --porcelain
+    echo ""
+    read -p "Do you want to commit these changes? (y/n): " commit_changes
+    
+    if [ "$commit_changes" = "y" ] || [ "$commit_changes" = "Y" ]; then
+        read -p "Enter commit message: " commit_message
+        git add .
+        git commit -m "$commit_message"
+        echo "✅ Changes committed to staging"
+    else
+        echo "❌ Cannot deploy with uncommitted changes"
+        exit 1
+    fi
+fi
+
 echo ""
+echo "🔑 GitHub Authentication Required"
 read -p "Enter your GitHub username: " github_username
 read -s -p "Enter your GitHub Personal Access Token: " github_token
 echo ""
+echo ""
 
-# Configure git with token
+# Validate inputs
+if [ -z "$github_username" ] || [ -z "$github_token" ]; then
+    echo "❌ Username and token are required"
+    exit 1
+fi
+
+echo "🚀 DEPLOYING TO STAGING..."
+echo "========================="
+
+# Configure git with token temporarily
 git remote set-url origin https://$github_username:$github_token@github.com/king6870/family-chore-calendar.git
 
-# Push staging branch
-echo ""
-echo "🔄 Pushing staging branch to GitHub..."
+# Push to staging branch (triggers Vercel preview deployment)
+echo "📤 Pushing to GitHub staging branch..."
 git push origin staging
 
 if [ $? -eq 0 ]; then
     echo ""
-    echo "✅ Staging branch pushed successfully!"
+    echo "✅ STAGING DEPLOYMENT SUCCESSFUL!"
+    echo "================================"
     echo ""
-    echo "🎯 Next Steps:"
-    echo "1. Go to Vercel Dashboard: https://vercel.com/dashboard"
-    echo "2. Find your project: family-chore-calendar"
-    echo "3. Look for new deployment from 'staging' branch"
-    echo "4. Staging URL will be: https://family-chore-calendar-git-staging-[username].vercel.app"
+    echo "🧪 Staging URL: https://family-chore-calendar-git-staging-duckys-projects-22b2b673.vercel.app"
+    echo "⏱️  Deployment usually takes 1-2 minutes"
     echo ""
-    echo "⏱️  Deployment usually takes 2-3 minutes"
-    echo "🔄 Vercel will automatically deploy every push to staging branch"
+    echo "🔍 Test your changes on staging before production deployment"
+    echo "✅ Once satisfied, run: ./deploy-production.sh"
+    echo ""
 else
     echo ""
-    echo "❌ Failed to push staging branch"
-    echo "Please check your GitHub token and try again"
+    echo "❌ STAGING DEPLOYMENT FAILED"
+    echo "Check the error messages above"
 fi
 
-# Reset git remote (remove token from URL for security)
+# Reset git remote for security
 git remote set-url origin https://github.com/king6870/family-chore-calendar.git
+echo "🔐 Git remote URL reset for security"
 
 echo ""
-echo "🔐 Git remote URL reset for security"
+echo "🏁 Staging deployment completed"
