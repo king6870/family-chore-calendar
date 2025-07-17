@@ -5,6 +5,7 @@ import PointsManager from './PointsManager'
 import ChoreAuction from './ChoreAuction'
 import RecurringChoreManager from './RecurringChoreManager'
 import ChoreAssignmentManager from './ChoreAssignmentManager'
+import RewardManager from './RewardManager'
 
 interface User {
   id: string
@@ -253,6 +254,7 @@ export default function AdminPanel({ currentUser, onRefresh }: AdminPanelProps) 
             { id: 'assign', label: '📝 Assign Chores', icon: '📝' },
             { id: 'recurring', label: '🔄 Recurring Chores', icon: '🔄' },
             { id: 'points', label: '🏆 Points Manager', icon: '🏆' },
+            { id: 'rewards', label: '🎁 Rewards', icon: '🎁' },
             { id: 'auctions', label: '🏛️ Chore Auctions', icon: '🏛️' },
             ...(currentUser.isOwner ? [{ id: 'danger', label: '⚠️ Danger Zone', icon: '⚠️' }] : [])
           ].map((tab) => (
@@ -519,6 +521,13 @@ export default function AdminPanel({ currentUser, onRefresh }: AdminPanelProps) 
       {activeTab === 'points' && (
         <div>
           <PointsManager />
+        </div>
+      )}
+
+      {/* Rewards Tab */}
+      {activeTab === 'rewards' && (
+        <div>
+          <RewardManager />
         </div>
       )}
 

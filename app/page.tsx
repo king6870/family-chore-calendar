@@ -8,6 +8,7 @@ import PointsTracker from './components/PointsTracker'
 import PointsDisplay from './components/PointsDisplay'
 import ChoreCalendar from './components/ChoreCalendar'
 import ChoreAuction from './components/ChoreAuction'
+import RewardStore from './components/RewardStore'
 
 interface User {
   id: string
@@ -154,6 +155,7 @@ export default function Home() {
                   { id: 'home', label: '🏠 Home', icon: '🏠' },
                   { id: 'calendar', label: '📅 Calendar', icon: '📅' },
                   { id: 'points', label: '⭐ Points', icon: '⭐' },
+                  { id: 'rewards', label: '🎁 Rewards', icon: '🎁' },
                   { id: 'auctions', label: '🏛️ Auctions', icon: '🏛️' },
                   { id: 'family', label: '👥 Family', icon: '👥' },
                   ...(user.isAdmin ? [{ id: 'admin', label: '🛠️ Admin', icon: '🛠️' }] : [])
@@ -318,6 +320,11 @@ export default function Home() {
                 </div>
               </div>
             </div>
+          )}
+
+          {/* Rewards Section */}
+          {activeSection === 'rewards' && (
+            <RewardStore />
           )}
 
           {/* Auctions Section */}

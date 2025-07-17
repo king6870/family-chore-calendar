@@ -50,12 +50,17 @@ model User {
   choreAssignments ChoreAssignment[]
   ChoreAuction     ChoreAuction[]
   ChoreBid         ChoreBid[]
-  Notification     Notification[]
   pointsEarned     PointsEarned[]
-  RewardRedemption RewardRedemption[]
   sessions         Session[]
   suggestions      Suggestion[]
   family           Family?            @relation(fields: [familyId], references: [id])
+  
+  // New reward system relations
+  createdRewards   Reward[]         @relation("RewardCreator")
+  rewardClaims     RewardClaim[]    @relation("UserRewardClaims")
+  approvedClaims   RewardClaim[]    @relation("RewardApprover")
+  createdGoals     PointGoal[]      @relation("GoalCreator")
+  goalProgress     GoalProgress[]   @relation("UserGoalProgress")
 }
 
 model VerificationToken {
@@ -76,10 +81,15 @@ model Family {
   choreAssignments ChoreAssignment[]
   ChoreAuction     ChoreAuction[]
   pointsEarned     PointsEarned[]
-  Reward           Reward[]
   members          User[]
   suggestions      Suggestion[]
   weeklyGoals      WeeklyGoal[]
+  
+  // New reward system relations
+  newRewards       Reward[]         @relation("FamilyRewards")
+  rewardClaims     RewardClaim[]
+  pointGoals       PointGoal[]
+  goalProgress     GoalProgress[]
 }
 
 model Chore {
@@ -191,6 +201,81 @@ model ChoreBid {
   @@unique([auctionId, userId])
 }
 
+model Reward {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  pointsRequired Int
+  isActive    Boolean  @default(true)
+  category    String   @default("general") // general, privilege, item, experience
+  imageUrl    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  familyId    String
+  createdBy   String
+  
+  family      Family   @relation("FamilyRewards", fields: [familyId], references: [id], onDelete: Cascade)
+  creator     User     @relation("RewardCreator", fields: [createdBy], references: [id])
+  claims      RewardClaim[]
+  goals       PointGoal[]
+}
+
+model RewardClaim {
+  id          String   @id @default(cuid())
+  rewardId    String
+  userId      String
+  familyId    String
+  pointsSpent Int
+  status      String   @default("pending") // pending, approved, delivered, cancelled
+  claimedAt   DateTime @default(now())
+  approvedAt  DateTime?
+  approvedBy  String?
+  notes       String?
+  
+  reward      Reward   @relation(fields: [rewardId], references: [id], onDelete: Cascade)
+  user        User     @relation("UserRewardClaims", fields: [userId], references: [id], onDelete: Cascade)
+  family      Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  approver    User?    @relation("RewardApprover", fields: [approvedBy], references: [id])
+}
+
+model PointGoal {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  targetPoints Int
+  timeframe   String   // weekly, monthly, custom
+  startDate   DateTime
+  endDate     DateTime
+  isActive    Boolean  @default(true)
+  rewardId    String?
+  familyId    String
+  createdBy   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  family      Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  creator     User     @relation("GoalCreator", fields: [createdBy], references: [id])
+  reward      Reward?  @relation(fields: [rewardId], references: [id])
+  progress    GoalProgress[]
+}
+
+model GoalProgress {
+  id          String   @id @default(cuid())
+  goalId      String
+  userId      String
+  familyId    String
+  currentPoints Int    @default(0)
+  isCompleted Boolean  @default(false)
+  completedAt DateTime?
+  lastUpdated DateTime @default(now())
+  
+  goal        PointGoal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  user        User     @relation("UserGoalProgress", fields: [userId], references: [id], onDelete: Cascade)
+  family      Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  
+  @@unique([goalId, userId])
+}
+
 model Suggestion {
   id          String   @id @default(cuid())
   title       String
@@ -206,41 +291,4 @@ model Suggestion {
   userName    String?
   user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   family      Family?  @relation(fields: [familyId], references: [id], onDelete: SetNull)
-}
-
-model Notification {
-  id        String   @id
-  type      String
-  title     String
-  message   String
-  read      Boolean  @default(false)
-  actionUrl String?
-  createdAt DateTime @default(now())
-  userId    String
-  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model Reward {
-  id               String             @id
-  name             String
-  description      String?
-  pointsCost       Int
-  isActive         Boolean            @default(true)
-  createdAt        DateTime           @default(now())
-  familyId         String
-  Family           Family             @relation(fields: [familyId], references: [id], onDelete: Cascade)
-  RewardRedemption RewardRedemption[]
-}
-
-model RewardRedemption {
-  id          String    @id
-  pointsSpent Int
-  status      String    @default("pending")
-  createdAt   DateTime  @default(now())
-  completedAt DateTime?
-  userId      String
-  rewardId    String
-  familyId    String
-  Reward      Reward    @relation(fields: [rewardId], references: [id], onDelete: Cascade)
-  User        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
