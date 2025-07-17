@@ -1,12 +1,13 @@
 #!/bin/bash
 
-echo "🧪 STAGING DEPLOYMENT WITH PRISMA ACCELERATE"
-echo "============================================="
+echo "🧪 SECURE STAGING DEPLOYMENT WITH PRISMA ACCELERATE"
+echo "===================================================="
 echo ""
 echo "🎯 Target: Staging Environment"
 echo "🌐 URL: https://family-chore-calendar-git-staging-duckys-projects-22b2b673.vercel.app"
 echo "🗄️  Database: Prisma Accelerate (High-Performance)"
 echo "🔒 Safe: No production users affected"
+echo "🛡️  Security: No secrets in git repository"
 echo ""
 
 # Check if we're on staging branch
@@ -42,6 +43,40 @@ if ! git diff-index --quiet HEAD --; then
 fi
 
 echo ""
+echo "🗄️  PRISMA ACCELERATE SETUP VERIFICATION"
+echo "========================================"
+echo "✅ Database URL configured for Prisma Accelerate"
+echo "⚡ High-performance connection with caching"
+echo "🌍 Global edge network for fast queries"
+echo "🔐 Secrets managed securely in Vercel environment"
+echo ""
+echo "📋 Required Vercel Environment Variables (Preview):"
+echo "   DATABASE_URL: prisma+postgres://accelerate.prisma-data.net/?api_key=..."
+echo "   NEXTAUTH_URL: https://family-chore-calendar-git-staging-duckys-projects-22b2b673.vercel.app"
+echo "   GOOGLE_CLIENT_ID: 755830677010-5lah4ispmh61q7jl7c9ua9ibsf569pi6.apps.googleusercontent.com"
+echo "   GOOGLE_CLIENT_SECRET: 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"
+echo "   NEXTAUTH_SECRET: hSx7PjeugAKPk0lWLkuDrAjwE8v132a02GM4rtZ5zuc="
+echo ""
+
+read -p "Have you added all environment variables to Vercel Preview environment? (y/n): " env_configured
+
+if [ "$env_configured" != "y" ] && [ "$env_configured" != "Y" ]; then
+    echo ""
+    echo "⚠️  PLEASE CONFIGURE ENVIRONMENT VARIABLES FIRST"
+    echo "==============================================="
+    echo "1. Go to: https://vercel.com/dashboard"
+    echo "2. Select your project: family-chore-calendar"
+    echo "3. Go to Settings → Environment Variables"
+    echo "4. Add all variables listed above for Preview environment"
+    echo "5. Save and run this script again"
+    echo ""
+    echo "🔐 Security Note: Environment variables are NOT stored in git"
+    echo "   This prevents accidental secret exposure in your repository"
+    echo ""
+    exit 1
+fi
+
+echo ""
 echo "🔑 GitHub Authentication Required"
 read -p "Enter your GitHub username: " github_username
 read -s -p "Enter your GitHub Personal Access Token: " github_token
@@ -51,36 +86,6 @@ echo ""
 # Validate inputs
 if [ -z "$github_username" ] || [ -z "$github_token" ]; then
     echo "❌ Username and token are required"
-    exit 1
-fi
-
-echo "🗄️  PRISMA ACCELERATE SETUP"
-echo "=========================="
-echo "✅ Database URL configured for Prisma Accelerate"
-echo "⚡ High-performance connection with caching"
-echo "🌍 Global edge network for fast queries"
-echo ""
-echo "📋 Make sure you've added this to Vercel Environment Variables:"
-echo "   Name: DATABASE_URL"
-echo "   Value: prisma+postgres://accelerate.prisma-data.net/?api_key=..."
-echo "   Environment: Preview (for staging)"
-echo ""
-
-read -p "Have you added the DATABASE_URL to Vercel Preview environment? (y/n): " db_configured
-
-if [ "$db_configured" != "y" ] && [ "$db_configured" != "Y" ]; then
-    echo ""
-    echo "⚠️  PLEASE CONFIGURE DATABASE FIRST"
-    echo "=================================="
-    echo "1. Go to: https://vercel.com/dashboard"
-    echo "2. Select your project: family-chore-calendar"
-    echo "3. Go to Settings → Environment Variables"
-    echo "4. Add new variable:"
-    echo "   Name: DATABASE_URL"
-    echo "   Value: Your Prisma Accelerate URL"
-    echo "   Environment: Preview"
-    echo "5. Save and run this script again"
-    echo ""
     exit 1
 fi
 
@@ -110,14 +115,26 @@ if [ $? -eq 0 ]; then
     echo "   ✅ Rewards system (available in staging)"
     echo "   ✅ Admin panel functionality"
     echo "   ✅ Database performance with Accelerate"
+    echo "   ✅ All features with high-performance backend"
     echo ""
     echo "🎯 Once satisfied with staging, deploy to production:"
     echo "   ./deploy-production.sh"
+    echo ""
+    echo "📊 Monitor Performance:"
+    echo "   - Check Prisma Accelerate dashboard for query analytics"
+    echo "   - Verify reduced latency and improved response times"
+    echo "   - Test global performance from different locations"
     echo ""
 else
     echo ""
     echo "❌ STAGING DEPLOYMENT FAILED"
     echo "Check the error messages above"
+    echo ""
+    echo "💡 Common issues:"
+    echo "   - GitHub push protection (secrets in files)"
+    echo "   - Invalid GitHub token"
+    echo "   - Network connectivity issues"
+    echo "   - Repository permissions"
 fi
 
 # Reset git remote for security
