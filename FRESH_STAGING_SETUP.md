@@ -33,24 +33,29 @@ This guide will help you create a completely new staging environment from scratc
 7. **Click**: "Create"
 8. **Copy**: Client ID and Client Secret (save these!)
 
-### Step 2: Create New Vercel Project 🚀
+### Step 2: Create Separate Vercel Project 🚀
+
+**Important**: Since your existing `family-chore-calendar` project is restricted to production branch, we'll create a completely separate Vercel project for staging.
 
 1. **Go to**: https://vercel.com/dashboard
 2. **Click**: "Add New..." → "Project"
-3. **Import**: Your `family-chore-calendar` GitHub repo
-4. **Project Name**: `family-chore-calendar-staging-v2`
+3. **Import**: Your `family-chore-calendar` GitHub repo (same repo, different project)
+4. **Project Name**: `family-chore-calendar-staging`
 5. **Framework**: Next.js (auto-detected)
 6. **Root Directory**: `./` (default)
-7. **Build Settings**: Use defaults
-8. **Environment Variables**: Skip for now
-9. **Deploy**: Click "Deploy"
+7. **Deploy**: Click "Deploy" (initial deployment)
+
+**Project Structure After Setup:**
+- **Production Project**: `family-chore-calendar` → deploys `main` branch
+- **Staging Project**: `family-chore-calendar-staging` → deploys `staging` branch
 
 ### Step 3: Configure Git Branch Deployment 🌿
 
-1. **In your new Vercel project**: Go to Settings → Git
-2. **Production Branch**: Leave empty (no auto-deploy to production)
-3. **Preview Branches**: Enable only `staging` branch
-4. **Save**: This ensures only staging branch deploys here
+**In your NEW staging project** (not the production one):
+1. **Go to Settings** → **Git**
+2. **Production Branch**: Set to `staging` (this makes staging branch the "production" branch for this project)
+3. **Preview Branches**: Disable or leave empty
+4. **Save**: This ensures only staging branch deploys to this project
 
 ### Step 4: Create New Database 🗄️
 
@@ -84,7 +89,7 @@ GOOGLE_CLIENT_ID=[YOUR-NEW-CLIENT-ID]
 GOOGLE_CLIENT_SECRET=[YOUR-NEW-CLIENT-SECRET]
 ```
 
-**Important**: Set environment for **Preview** (not Production)
+**Important**: Set environment for **Production** (since the staging branch is the "production" branch for your staging project)
 
 ### Step 6: Update OAuth Client URLs 🔗
 
