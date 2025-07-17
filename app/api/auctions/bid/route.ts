@@ -140,9 +140,8 @@ export async function POST(request: NextRequest) {
         createdAt: new Date()
       }));
 
-      await prisma.notification.createMany({
-        data: notifications
-      });
+      // Note: Notification system removed - notifications would be created here
+      console.log('Bid notifications would be sent to:', notifications.length, 'family members');
     }
 
     return NextResponse.json({

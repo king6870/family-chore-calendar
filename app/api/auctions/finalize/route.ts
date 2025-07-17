@@ -112,19 +112,8 @@ export async function POST(request: NextRequest) {
             data: assignments
           });
 
-          // Create notification for winner
-          await prisma.notification.create({
-            data: {
-              id: `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-              userId: lowestBid.userId,
-              type: 'AUCTION_WON',
-              title: 'You Won an Auction!',
-              message: `Congratulations! You won "${auction.Chore.name}" for ${lowestBid.bidPoints} points.`,
-              actionUrl: '/calendar',
-              read: false,
-              createdAt: new Date()
-            }
-          });
+          // Note: Notification system removed - winner notification would be created here
+          console.log('Winner notification would be sent to user:', lowestBid.userId);
 
           results.assigned++;
           results.details.push({
@@ -172,9 +161,8 @@ export async function POST(request: NextRequest) {
             createdAt: new Date()
           }));
 
-          await prisma.notification.createMany({
-            data: notifications
-          });
+          // Note: Notification system removed - notifications would be created here
+          console.log('Auction finalization notifications would be sent to:', notifications.length, 'family members');
 
           results.increased++;
           results.details.push({

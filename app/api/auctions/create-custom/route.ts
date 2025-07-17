@@ -182,9 +182,8 @@ export async function POST(request: NextRequest) {
       createdAt: new Date()
     }));
 
-    await prisma.notification.createMany({
-      data: notifications
-    });
+    // Note: Notification system removed - notifications would be created here
+    console.log('Custom auction notifications would be sent to:', notifications.length, 'family members');
 
     // Step 5: Log the activity
     await prisma.activityLog.create({
