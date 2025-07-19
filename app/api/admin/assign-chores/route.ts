@@ -113,13 +113,13 @@ export async function POST(request: NextRequest) {
 
     // Check age restrictions
     const restrictedUsers = validUsers.filter(user => 
-      user.age && user.age < chore.minAge
+      user.age && chore.minAge && user.age < chore.minAge
     );
 
     if (restrictedUsers.length > 0) {
       const names = restrictedUsers.map(u => u.name || u.nickname || 'Unknown').join(', ');
       return NextResponse.json({ 
-        error: `Age restriction: ${names} ${restrictedUsers.length === 1 ? 'is' : 'are'} too young for this chore (minimum age: ${chore.minAge})` 
+        error: `Age restriction: ${names} ${restrictedUsers.length === 1 ? 'is' : 'are'} too young for this chore (minimum age: ${chore.minAge || 0})` 
       }, { status: 400 });
     }
 
