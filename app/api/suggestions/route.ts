@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '../../../lib/auth';
 import { prisma } from '../../../lib/prisma';
 
-// POST - Submit a new suggestion (only endpoint needed - viewing is database-only)
+// POST - Submit a new suggestion
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -53,32 +53,28 @@ export async function POST(request: NextRequest) {
       suggestionData.userName = 'Anonymous User';
     }
 
-    // Create suggestion in database (table now exists in production)
-    try {
-      const suggestion = await prisma.suggestion.create({
-        data: suggestionData
-      });
+    // Create suggestion in database
+    const suggestion = await prisma.suggestion.create({
+      data: suggestionData
+    });
 
-      return NextResponse.json({ 
-        success: true,
-        message: 'Thank you for your suggestion! Your feedback has been submitted and will be reviewed.',
-        suggestionId: suggestion.id
-      });
+    console.log('✅ SUGGESTION SUCCESSFULLY CREATED:', {
+      id: suggestion.id,
+      title: suggestion.title,
+      category: suggestion.category,
+      status: suggestion.status,
+      userId: suggestion.userId,
+      familyId: suggestion.familyId
+    });
 
-    } catch (dbError) {
-      console.error('Error creating suggestion:', dbError);
-      
-      return NextResponse.json(
-        { 
-          success: false,
-          error: 'Failed to submit suggestion. Please try again later.' 
-        },
-        { status: 500 }
-      );
-    }
+    return NextResponse.json({ 
+      success: true,
+      message: 'Thank you for your suggestion! Your feedback has been submitted and will be reviewed.',
+      suggestionId: suggestion.id
+    });
 
   } catch (error) {
-    console.error('Error creating suggestion:', error);
+    console.error('❌ Error creating suggestion:', error);
     return NextResponse.json({ error: 'Failed to submit suggestion' }, { status: 500 });
   }
 }
