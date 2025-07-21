@@ -1,0 +1,3 @@
+local is on sqlite3 dev environment
+production is on vercel PostgreSQL
+auth is on google 
