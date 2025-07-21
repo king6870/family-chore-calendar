@@ -64,7 +64,6 @@ export async function POST(request: NextRequest) {
         points: parseInt(points),
         minAge: parseInt(minAge) || 0,
         difficulty: difficulty || 'Easy',
-        isRecurring: Boolean(isRecurring),
         basePoints: parseInt(points), // For auction system
         familyId: user.familyId
       }
@@ -116,7 +115,6 @@ export async function PUT(request: NextRequest) {
         points: parseInt(points),
         minAge: parseInt(minAge) || 0,
         difficulty: difficulty || 'Easy',
-        isRecurring: Boolean(isRecurring),
         basePoints: parseInt(points)
       }
     })

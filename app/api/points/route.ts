@@ -96,8 +96,8 @@ export async function GET(request: NextRequest) {
         completedChores,
         totalChores,
         completionRate: totalChores > 0 ? Math.round((completedChores / totalChores) * 100) : 0,
-        isAtGoal: weeklyGoal ? memberPoints >= weeklyGoal.pointsGoal : false,
-        pointsToGoal: weeklyGoal ? Math.max(0, weeklyGoal.pointsGoal - memberPoints) : 0
+        isAtGoal: weeklyGoal ? memberPoints >= weeklyGoal.target : false,
+        pointsToGoal: weeklyGoal ? Math.max(0, weeklyGoal.target - memberPoints) : 0
       }
     })
 
@@ -137,8 +137,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       members,
       weeklyGoal: weeklyGoal ? { 
-        pointsGoal: weeklyGoal.pointsGoal,
-        familyTarget: weeklyGoal.pointsGoal * members.length
+        target: weeklyGoal.target,
+        familyTarget: weeklyGoal.target * members.length
       } : null,
       analytics: {
         totalFamilyPoints,
@@ -155,7 +155,7 @@ export async function GET(request: NextRequest) {
       },
       trends: {
         historical: historicalWeeks,
-        currentWeekProgress: Math.round((totalFamilyPoints / (weeklyGoal ? weeklyGoal.pointsGoal * members.length : 100)) * 100)
+        currentWeekProgress: Math.round((totalFamilyPoints / (weeklyGoal ? weeklyGoal.target * members.length : 100)) * 100)
       }
     })
   } catch (error) {

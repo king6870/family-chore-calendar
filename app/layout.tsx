@@ -7,7 +7,7 @@ import SuggestionsFloatingButton from './components/SuggestionsFloatingButton'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Family Chore Calendar',
+  title: 'Family Chores Calendar',
   description: 'A comprehensive family chore management system with smart bidding and automation',
 }
 

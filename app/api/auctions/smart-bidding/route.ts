@@ -38,12 +38,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Get the specific auction
-    const auction = await prisma.choreAuction.findUnique({
+    const auction = await prisma.auction.findUnique({
       where: { id: auctionId },
       include: {
         Chore: true,
-        ChoreBid: {
-          include: { User: true },
+        bids: {
+          include: { user: true },
           orderBy: { bidPoints: 'asc' }
         }
       }
@@ -55,32 +55,32 @@ export async function POST(request: NextRequest) {
 
     // Get all active auctions for this week to calculate total chores
     const weekStart = new Date(auction.weekStart);
-    const allAuctions = await prisma.choreAuction.findMany({
+    const allAuctions = await prisma.auction.findMany({
       where: {
         weekStart: weekStart,
         status: 'ACTIVE'
       },
       include: {
-        ChoreBid: {
+        bids: {
           where: { userId: currentUser.id }
         }
       }
     });
 
     // Get current weekly goal
-    const currentWeeklyGoal = currentUser.family.weeklyGoals[0]?.pointsGoal || 100; // Default to 100 if no goal set
+    const currentWeeklyGoal = currentUser.family.weeklyGoals[0]?.target || 100; // Default to 100 if no goal set
 
     // Calculate user's existing bids count
     const userExistingBids = allAuctions.reduce((count, auc) => {
-      return count + (auc.ChoreBid.length > 0 ? 1 : 0);
+      return count + (auc.bids.length > 0 ? 1 : 0);
     }, 0);
 
     // Calculate time remaining
-    const timeRemainingMs = new Date(auction.endsAt).getTime() - new Date().getTime();
+    const timeRemainingMs = new Date(auction.endTime).getTime() - new Date().getTime();
     const timeRemainingHours = Math.max(0, timeRemainingMs / (1000 * 60 * 60));
 
     // Get current lowest bid
-    const currentLowestBid = auction.ChoreBid.length > 0 ? auction.ChoreBid[0].bidPoints : undefined;
+    const currentLowestBid = auction.bids.length > 0 ? auction.bids[0].bidPoints : undefined;
 
     // Calculate smart bidding limits
     const biddingLimits = calculateSmartBiddingLimits({
@@ -88,21 +88,21 @@ export async function POST(request: NextRequest) {
       totalChores: allAuctions.length,
       familyMemberCount: currentUser.family.members.length,
       userCurrentPoints: currentUser.totalPoints,
-      choreOriginalPoints: auction.startPoints,
+      choreOriginalPoints: auction.Chore.points,
       currentLowestBid,
       userExistingBids,
       timeRemainingHours
     });
 
     // Get user's current bid on this auction
-    const userCurrentBid = auction.ChoreBid.find(bid => bid.User.id === currentUser.id);
+    const userCurrentBid = auction.bids.find(bid => bid.user.id === currentUser.id);
 
     return NextResponse.json({
       biddingLimits,
       auctionInfo: {
         choreId: auction.Chore.id,
         choreName: auction.Chore.name,
-        originalPoints: auction.startPoints,
+        originalPoints: auction.Chore.points,
         currentLowestBid,
         timeRemainingHours: Math.round(timeRemainingHours * 10) / 10,
         userCurrentBid: userCurrentBid?.bidPoints

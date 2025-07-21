@@ -36,7 +36,7 @@ export async function GET() {
       }
     })
 
-    return NextResponse.json(weeklyGoal || { pointsGoal: 100 })
+    return NextResponse.json(weeklyGoal || { target: 100 })
   } catch (error) {
     console.error('Error fetching weekly goal:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -59,9 +59,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 
-    const { pointsGoal } = await request.json()
+    const { target } = await request.json()
 
-    if (!pointsGoal || pointsGoal < 1) {
+    if (!target || target < 1) {
       return NextResponse.json({ error: 'Valid points goal required' }, { status: 400 })
     }
 
@@ -81,12 +81,12 @@ export async function POST(request: NextRequest) {
         }
       },
       update: {
-        pointsGoal: parseInt(pointsGoal)
+        target: parseInt(target)
       },
       create: {
         familyId: user.familyId,
         weekStart: weekStart,
-        pointsGoal: parseInt(pointsGoal)
+        target: parseInt(target)
       }
     })
 

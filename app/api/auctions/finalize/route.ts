@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     const weekStartDate = new Date(weekStart);
 
     // Get all active auctions for the week
-    const auctions = await prisma.choreAuction.findMany({
+    const auctions = await prisma.auction.findMany({
       where: {
         familyId: adminUser.familyId,
         weekStart: weekStartDate,
@@ -38,9 +38,9 @@ export async function POST(request: NextRequest) {
       },
       include: {
         Chore: true,
-        ChoreBid: {
+        bids: {
           include: {
-            User: {
+            user: {
               select: {
                 id: true,
                 name: true,
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
     // Process each auction
     for (const auction of auctions) {
       try {
-        const lowestBid = auction.ChoreBid[0];
+        const lowestBid = auction.bids[0];
         
         if (lowestBid) {
           // Auction has bids - assign to lowest bidder
@@ -79,12 +79,10 @@ export async function POST(request: NextRequest) {
           weekEndDate.setHours(23, 59, 59, 999);
 
           // Update auction with winner
-          await prisma.choreAuction.update({
+          await prisma.auction.update({
             where: { id: auction.id },
             data: {
-              status: 'completed',
-              winnerId: lowestBid.userId,
-              finalPoints: lowestBid.bidPoints
+              status: 'completed'
             }
           });
 
@@ -118,21 +116,20 @@ export async function POST(request: NextRequest) {
           results.assigned++;
           results.details.push({
             choreName: auction.Chore.name,
-            winner: lowestBid.User.nickname || lowestBid.User.name,
+            winner: lowestBid.user.nickname || lowestBid.user.name,
             winningBid: lowestBid.bidPoints,
-            originalPoints: auction.startPoints,
+            originalPoints: auction.Chore.points,
             status: 'assigned'
           });
 
         } else {
           // No bids - increase points by 10% and keep auction active
-          const newPoints = Math.round(auction.startPoints * 1.1);
+          const newPoints = Math.round(auction.Chore.points * 1.1);
           
-          await prisma.choreAuction.update({
+          await prisma.auction.update({
             where: { id: auction.id },
             data: {
-              startPoints: newPoints,
-              endsAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // Extend by 24 hours
+              endTime: new Date(Date.now() + 24 * 60 * 60 * 1000) // Extend by 24 hours
             }
           });
 
@@ -167,7 +164,7 @@ export async function POST(request: NextRequest) {
           results.increased++;
           results.details.push({
             choreName: auction.Chore.name,
-            originalPoints: auction.startPoints,
+            originalPoints: auction.Chore.points,
             newPoints: newPoints,
             status: 'increased'
           });
@@ -193,12 +190,7 @@ export async function POST(request: NextRequest) {
         userId: session.user.id,
         familyId: adminUser.familyId,
         action: 'AUCTIONS_FINALIZED',
-        description: `Finalized ${results.finalized} auctions for week of ${weekStartDate.toLocaleDateString()}`,
-        metadata: JSON.stringify({
-          weekStart: weekStartDate,
-          results,
-          finalizedAt: new Date()
-        })
+        details: `Finalized ${results.finalized} auctions for week of ${weekStartDate.toLocaleDateString()}`
       }
     });
 

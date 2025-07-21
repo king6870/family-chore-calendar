@@ -28,11 +28,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Get the auction and verify it's active
-    const auction = await prisma.choreAuction.findUnique({
+    const auction = await prisma.auction.findUnique({
       where: { id: auctionId },
       include: {
         Chore: true,
-        ChoreBid: {
+        bids: {
           orderBy: { bidPoints: 'asc' }
         }
       }
@@ -50,26 +50,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Auction is not active' }, { status: 400 });
     }
 
-    if (new Date() > auction.endsAt) {
+    if (new Date() > auction.endTime) {
       return NextResponse.json({ error: 'Auction has ended' }, { status: 400 });
     }
 
     // Check if user meets age requirement for the chore
-    if (user.age && user.age < auction.Chore.minAge) {
+    if (user.age && auction.Chore.minAge && user.age < auction.Chore.minAge) {
       return NextResponse.json({ 
         error: `You must be at least ${auction.Chore.minAge} years old to bid on this chore` 
       }, { status: 400 });
     }
 
     // Validate bid amount (must be less than or equal to starting points)
-    if (bidPoints > auction.startPoints) {
+    if (bidPoints > auction.Chore.points) {
       return NextResponse.json({ 
-        error: `Bid cannot exceed starting points of ${auction.startPoints}` 
+        error: `Bid cannot exceed starting points of ${auction.Chore.points}` 
       }, { status: 400 });
     }
 
     // Check if this bid is better than current lowest bid
-    const currentLowestBid = auction.ChoreBid[0];
+    const currentLowestBid = auction.bids[0];
     if (currentLowestBid && bidPoints >= currentLowestBid.bidPoints) {
       return NextResponse.json({ 
         error: `Your bid must be lower than the current lowest bid of ${currentLowestBid.bidPoints} points` 
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
     // Create or update the user's bid
     const bidId = `bid_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     
-    await prisma.choreBid.upsert({
+    await prisma.auctionBid.upsert({
       where: {
         auctionId_userId: {
           auctionId: auctionId,
@@ -94,19 +94,20 @@ export async function POST(request: NextRequest) {
         id: bidId,
         auctionId: auctionId,
         userId: user.id,
+        familyId: user.familyId!,
         bidPoints: bidPoints,
         createdAt: new Date()
       }
     });
 
     // Get updated auction with all bids
-    const updatedAuction = await prisma.choreAuction.findUnique({
+    const updatedAuction = await prisma.auction.findUnique({
       where: { id: auctionId },
       include: {
         Chore: true,
-        ChoreBid: {
+        bids: {
           include: {
-            User: {
+            user: {
               select: {
                 id: true,
                 name: true,
@@ -148,7 +149,7 @@ export async function POST(request: NextRequest) {
       success: true,
       message: `Successfully placed bid of ${bidPoints} points`,
       auction: updatedAuction,
-      isLowestBid: updatedAuction?.ChoreBid[0]?.userId === user.id
+      isLowestBid: updatedAuction?.bids[0]?.userId === user.id
     });
 
   } catch (error) {

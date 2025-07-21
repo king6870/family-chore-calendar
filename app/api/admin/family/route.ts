@@ -37,8 +37,7 @@ export async function DELETE() {
       prisma.choreAssignment.deleteMany({ where: { familyId: user.familyId } }),
       prisma.pointsEarned.deleteMany({ where: { familyId: user.familyId } }),
       prisma.weeklyGoal.deleteMany({ where: { familyId: user.familyId } }),
-      prisma.choreAuction.deleteMany({ where: { familyId: user.familyId } }),
-      prisma.reward.deleteMany({ where: { familyId: user.familyId } }),
+      prisma.auction.deleteMany({ where: { familyId: user.familyId } }),
       prisma.chore.deleteMany({ where: { familyId: user.familyId } }),
       
       // Reset user

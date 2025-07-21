@@ -73,12 +73,7 @@ export async function POST(request: NextRequest) {
           userId: session.user.id,
           familyId: adminUser.familyId!,
           action: points > 0 ? 'POINTS_AWARDED' : 'POINTS_DEDUCTED',
-          description: `${points > 0 ? 'Awarded' : 'Deducted'} ${Math.abs(points)} points ${points > 0 ? 'to' : 'from'} ${targetUser.nickname || targetUser.name}`,
-          metadata: JSON.stringify({
-            targetUserId: userId,
-            points: points,
-            reason: reason || 'Manual adjustment by admin'
-          })
+          details: `${points > 0 ? 'Awarded' : 'Deducted'} ${Math.abs(points)} points ${points > 0 ? 'to' : 'from'} ${targetUser.nickname || targetUser.name}`
         }
       });
     });

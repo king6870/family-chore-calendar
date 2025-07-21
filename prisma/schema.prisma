@@ -48,8 +48,7 @@ model User {
   accounts         Account[]
   ActivityLog      ActivityLog[]
   choreAssignments ChoreAssignment[]
-  ChoreAuction     ChoreAuction[]
-  ChoreBid         ChoreBid[]
+  auctionBids      AuctionBid[]
   pointsEarned     PointsEarned[]
   sessions         Session[]
   suggestions      Suggestion[]
@@ -79,11 +78,13 @@ model Family {
   updatedAt        DateTime          @updatedAt
   chores           Chore[]
   choreAssignments ChoreAssignment[]
-  ChoreAuction     ChoreAuction[]
+  auctions         Auction[]
+  auctionBids      AuctionBid[]
   pointsEarned     PointsEarned[]
   members          User[]
   suggestions      Suggestion[]
   weeklyGoals      WeeklyGoal[]
+  activityLogs     ActivityLog[]
   
   // New reward system relations
   newRewards       Reward[]         @relation("FamilyRewards")
@@ -115,7 +116,7 @@ model Chore {
   
   family            Family            @relation(fields: [familyId], references: [id], onDelete: Cascade)
   assignments       ChoreAssignment[]
-  ChoreAuction      ChoreAuction[]
+  auctions          Auction[]
 }
 
 model ChoreAssignment {
@@ -149,54 +150,62 @@ model PointsEarned {
 }
 
 model WeeklyGoal {
-  id         String   @id @default(cuid())
-  weekStart  DateTime
-  pointsGoal Int
-  createdAt  DateTime @default(now())
-  familyId   String
-  family     Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  id        String   @id @default(cuid())
+  familyId  String
+  weekStart DateTime
+  goalType  String   @default("points")
+  target    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
 
   @@unique([familyId, weekStart])
 }
 
 model ActivityLog {
-  id          String   @id
-  action      String
-  description String
-  metadata    String?
-  createdAt   DateTime @default(now())
-  userId      String
-  familyId    String?
-  User        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String   @id @default(cuid())
+  userId    String
+  familyId  String
+  action    String
+  details   String?
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
 }
 
-model ChoreAuction {
-  id          String     @id
-  weekStart   DateTime
-  status      String     @default("active")
-  startPoints Int
-  finalPoints Int?
-  winnerId    String?
-  createdAt   DateTime   @default(now())
-  endsAt      DateTime
+model Auction {
+  id          String    @id @default(cuid())
   choreId     String
   familyId    String
-  Chore       Chore      @relation(fields: [choreId], references: [id], onDelete: Cascade)
-  Family      Family     @relation(fields: [familyId], references: [id], onDelete: Cascade)
-  User        User?      @relation(fields: [winnerId], references: [id])
-  ChoreBid    ChoreBid[]
+  weekStart   DateTime
+  endTime     DateTime
+  status      String    @default("active")
+  title       String?
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  Chore  Chore        @relation(fields: [choreId], references: [id], onDelete: Cascade)
+  family Family       @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  bids   AuctionBid[]
 
   @@unique([choreId, weekStart])
 }
 
-model ChoreBid {
-  id           String       @id
-  bidPoints    Int
-  createdAt    DateTime     @default(now())
-  auctionId    String
-  userId       String
-  ChoreAuction ChoreAuction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
-  User         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+model AuctionBid {
+  id        String   @id @default(cuid())
+  auctionId String
+  userId    String
+  familyId  String
+  bidPoints Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  auction Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  family  Family  @relation(fields: [familyId], references: [id], onDelete: Cascade)
 
   @@unique([auctionId, userId])
 }

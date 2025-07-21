@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
     const memberEligibleChores = familyMembers.map(member => ({
       member,
       eligibleChores: allChores.filter(chore => 
-        !member.age || member.age >= chore.minAge
+        !member.age || !chore.minAge || member.age >= chore.minAge
       )
     }));
 
@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
         // Find eligible members for this chore
         const eligibleMembers = memberAssignments.filter(assignment => {
           const member = familyMembers.find(m => m.id === assignment.memberId);
-          return member && (!member.age || member.age >= chore.minAge);
+          return member && (!member.age || !chore.minAge || member.age >= chore.minAge);
         });
 
         if (eligibleMembers.length === 0) continue;
@@ -179,12 +179,8 @@ export async function POST(request: NextRequest) {
         userId: session.user.id,
         familyId: adminUser.familyId,
         action: 'CHORES_BALANCED',
-        description: `Balanced chore distribution for week of ${weekStartDate.toLocaleDateString()}`,
-        metadata: JSON.stringify({
-          weekStart: weekStartDate,
-          distributionStats,
-          balancedAt: new Date()
-        })
+        details: `Balanced chore distribution for week of ${weekStartDate.toLocaleDateString()}`,
+        createdAt: new Date()
       }
     });
 

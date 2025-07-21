@@ -11,7 +11,6 @@ interface NewChore {
   points: number;
   difficulty: 'Easy' | 'Medium' | 'Hard';
   minAge: number;
-  isRecurring: boolean;
 }
 
 interface CustomAuctionRequest {
@@ -56,7 +55,7 @@ export async function POST(request: NextRequest) {
     const weekStartDate = new Date(weekStart);
 
     // Check if auctions already exist for this week
-    const existingAuctions = await prisma.choreAuction.findMany({
+    const existingAuctions = await prisma.auction.findMany({
       where: {
         familyId: ownerUser.familyId,
         weekStart: weekStartDate
@@ -101,7 +100,6 @@ export async function POST(request: NextRequest) {
           points: newChore.points,
           difficulty: newChore.difficulty,
           minAge: newChore.minAge,
-          isRecurring: newChore.isRecurring,
           family: {
             connect: { id: ownerUser.familyId }
           }
@@ -152,14 +150,13 @@ export async function POST(request: NextRequest) {
       choreId: chore.id,
       familyId: ownerUser.familyId!,
       weekStart: weekStartDate,
-      startPoints: chore.points,
       status: 'active',
       createdAt: new Date(),
-      endsAt: new Date(Date.now() + auctionDurationHours * 60 * 60 * 1000)
+      endTime: new Date(Date.now() + auctionDurationHours * 60 * 60 * 1000)
     }));
 
     // Create all auctions
-    await prisma.choreAuction.createMany({
+    await prisma.auction.createMany({
       data: auctionsToCreate
     });
 
@@ -192,16 +189,7 @@ export async function POST(request: NextRequest) {
         userId: session.user.id,
         familyId: ownerUser.familyId,
         action: 'CUSTOM_AUCTIONS_CREATED',
-        description: `Created custom auction with ${results.newChoresCreated} new chores and ${existingChores.length} existing chores`,
-        metadata: JSON.stringify({
-          weekStart: weekStartDate,
-          auctionDurationHours,
-          newChoresCreated: results.newChoresCreated,
-          existingChoresUsed: existingChores.length,
-          totalAuctions: results.auctionsCreated,
-          choreDetails: results.choreDetails,
-          createdAt: new Date()
-        })
+        details: `Created custom auction with ${results.newChoresCreated} new chores and ${existingChores.length} existing chores`
       }
     });
 
@@ -210,7 +198,7 @@ export async function POST(request: NextRequest) {
       message: `Successfully created custom auction with ${results.auctionsCreated} chores`,
       results: {
         ...results,
-        endsAt: new Date(Date.now() + auctionDurationHours * 60 * 60 * 1000),
+        endTime: new Date(Date.now() + auctionDurationHours * 60 * 60 * 1000),
         notificationsSent: familyMembers.length
       }
     });

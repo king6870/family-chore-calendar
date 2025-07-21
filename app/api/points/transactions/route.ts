@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
         }
       },
       include: {
-        User: {
+        user: {
           select: {
             id: true,
             name: true,
@@ -114,17 +114,15 @@ export async function GET(request: NextRequest) {
 
     // Add activity log records
     for (const log of activityLogs) {
-      const metadata = log.metadata ? JSON.parse(log.metadata) : {};
-      
       transactions.push({
         id: log.id,
         type: 'admin_action',
-        userId: metadata.targetUserId || log.userId,
-        userName: log.User.nickname || log.User.name,
-        points: metadata.points || 0,
+        userId: log.userId,
+        userName: log.user.nickname || log.user.name,
+        points: 0, // Points info not available in simplified schema
         date: log.createdAt.toISOString(),
-        reason: log.description,
-        awardedBy: log.User.nickname || log.User.name || 'Admin'
+        reason: log.details || log.action,
+        awardedBy: log.user.nickname || log.user.name || 'Admin'
       });
     }
 

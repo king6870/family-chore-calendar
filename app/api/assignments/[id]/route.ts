@@ -83,16 +83,9 @@ export async function PATCH(
         data: {
           id: `activity_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
           action: 'POINTS_EARNED',
-          description: `${user.nickname || user.name} earned ${assignment.chore.points} points for completing "${assignment.chore.name}"`,
-          metadata: JSON.stringify({
-            choreId: assignment.choreId,
-            choreName: assignment.chore.name,
-            pointsEarned: assignment.chore.points,
-            completedAt: new Date(),
-            weekStart: weekStart
-          }),
+          details: `${user.nickname || user.name} earned ${assignment.chore.points} points for completing "${assignment.chore.name}"`,
           userId: user.id,
-          familyId: user.familyId
+          familyId: user.familyId!
         }
       })
 
@@ -118,7 +111,7 @@ export async function PATCH(
       })
 
       const totalPoints = currentWeekPoints._sum.points || 0
-      const goalPoints = weeklyGoal?.pointsGoal || 100
+      const goalPoints = weeklyGoal?.target || 100
 
       if (totalPoints >= goalPoints) {
         // Log goal achievement
@@ -126,15 +119,9 @@ export async function PATCH(
           data: {
             id: `goal_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
             action: 'WEEKLY_GOAL_ACHIEVED',
-            description: `🎉 ${user.nickname || user.name} achieved their weekly goal of ${goalPoints} points! Total: ${totalPoints} points`,
-            metadata: JSON.stringify({
-              goalPoints,
-              totalPoints,
-              weekStart: weekStart,
-              achievedAt: new Date()
-            }),
+            details: `🎉 ${user.nickname || user.name} achieved their weekly goal of ${goalPoints} points! Total: ${totalPoints} points`,
             userId: user.id,
-            familyId: user.familyId
+            familyId: user.familyId!
           }
         })
       }
@@ -183,15 +170,9 @@ export async function PATCH(
           data: {
             id: `remove_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
             action: 'POINTS_REMOVED',
-            description: `${user.nickname || user.name} lost ${pointsRemoved} points for unmarking "${assignment.chore.name}"`,
-            metadata: JSON.stringify({
-              choreId: assignment.choreId,
-              choreName: assignment.chore.name,
-              pointsRemoved: pointsRemoved,
-              unmarkedAt: new Date()
-            }),
+            details: `${user.nickname || user.name} lost ${pointsRemoved} points for unmarking "${assignment.chore.name}"`,
             userId: user.id,
-            familyId: user.familyId
+            familyId: user.familyId!
           }
         })
       }
@@ -225,7 +206,7 @@ export async function PATCH(
     })
 
     const totalWeeklyPoints = currentWeekPoints._sum.points || 0
-    const goalPoints = weeklyGoal?.pointsGoal || 100
+    const goalPoints = weeklyGoal?.target || 100
 
     return NextResponse.json({
       assignment: updatedAssignment,

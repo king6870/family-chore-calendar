@@ -227,7 +227,7 @@ export async function GET(request: NextRequest) {
       }
     });
 
-    const weeklyGoalPoints = weeklyGoal?.pointsGoal || 0;
+    const weeklyGoalPoints = weeklyGoal?.target || 0;
     const weeklyProgress = weeklyGoalPoints > 0 ? (weeklyPoints / weeklyGoalPoints) * 100 : 0;
 
     const response = {

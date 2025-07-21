@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
       data: {
         familyId: family.id,
         weekStart,
-        pointsGoal: 100
+        target: 100
       }
     })
 

@@ -51,7 +51,7 @@ export async function POST() {
       return NextResponse.json({ error: 'Need at least one member and one chore' }, { status: 400 })
     }
 
-    const targetPoints = weeklyGoal?.pointsGoal || 100
+    const targetPoints = weeklyGoal?.target || 100
     const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
     // Clear existing assignments for this week
@@ -93,7 +93,7 @@ export async function POST() {
         
         // Find eligible members (age requirement)
         const eligibleMembers = members.filter(member => 
-          (member.age || 0) >= chore.minAge
+          (member.age || 0) >= (chore.minAge || 0)
         )
 
         if (eligibleMembers.length === 0) continue
@@ -143,7 +143,7 @@ export async function POST() {
 
       // Find suitable chore to assign to lowest member
       const eligibleChores = chores.filter(c => 
-        (lowestMember[1].age || 0) >= c.minAge && 
+        (lowestMember[1].age || 0) >= (c.minAge || 0) && 
         c.points <= pointsDifference / 2 // Don't over-assign
       )
 
@@ -183,7 +183,7 @@ export async function POST() {
 
       while (memberData.points < targetPointsPerMember) {
         const eligibleChores = chores.filter(c => 
-          (member.age || 0) >= c.minAge && 
+          (member.age || 0) >= (c.minAge || 0) && 
           c.points <= (targetPointsPerMember - memberData.points + 5) // Allow slight overage
         )
 

@@ -73,11 +73,7 @@ export async function POST(request: NextRequest) {
           userId: session.user.id,
           familyId: adminUser.familyId!,
           action: 'POINTS_RESET',
-          description: `Reset all points for ${targetUser.nickname || targetUser.name}`,
-          metadata: JSON.stringify({
-            targetUserId: userId,
-            previousPoints: targetUser.totalPoints
-          })
+          details: `Reset all points for ${targetUser.nickname || targetUser.name}`
         }
       });
     });

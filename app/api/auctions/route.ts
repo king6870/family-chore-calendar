@@ -32,23 +32,16 @@ export async function GET(request: NextRequest) {
     const weekStartDate = new Date(weekStart);
 
     // Get all auctions for the week
-    const auctions = await prisma.choreAuction.findMany({
+    const auctions = await prisma.auction.findMany({
       where: {
         familyId: user.familyId,
         weekStart: weekStartDate
       },
       include: {
         Chore: true,
-        User: {
-          select: {
-            id: true,
-            name: true,
-            nickname: true
-          }
-        },
-        ChoreBid: {
+        bids: {
           include: {
-            User: {
+            user: {
               select: {
                 id: true,
                 name: true,
@@ -62,7 +55,7 @@ export async function GET(request: NextRequest) {
         }
       },
       orderBy: {
-        endsAt: 'asc'
+        endTime: 'asc'
       }
     });
 
@@ -104,7 +97,7 @@ export async function POST(request: NextRequest) {
     const weekStartDate = new Date(weekStart);
 
     // Check if auctions already exist for this week
-    const existingAuctions = await prisma.choreAuction.findMany({
+    const existingAuctions = await prisma.auction.findMany({
       where: {
         familyId: adminUser.familyId,
         weekStart: weekStartDate
@@ -134,14 +127,13 @@ export async function POST(request: NextRequest) {
       choreId: chore.id,
       familyId: adminUser.familyId!,
       weekStart: weekStartDate,
-      startPoints: chore.points,
       status: 'active',
       createdAt: new Date(),
-      endsAt: new Date(Date.now() + auctionDurationHours * 60 * 60 * 1000) // Default 24 hours
+      endTime: new Date(Date.now() + auctionDurationHours * 60 * 60 * 1000) // Default 24 hours
     }));
 
     // Create all auctions
-    await prisma.choreAuction.createMany({
+    await prisma.auction.createMany({
       data: auctionsToCreate
     });
 
@@ -172,13 +164,7 @@ export async function POST(request: NextRequest) {
         userId: session.user.id,
         familyId: adminUser.familyId,
         action: 'AUCTIONS_CREATED',
-        description: `Created ${chores.length} chore auctions for week of ${weekStartDate.toLocaleDateString()}`,
-        metadata: JSON.stringify({
-          weekStart: weekStartDate,
-          choreCount: chores.length,
-          auctionDurationHours,
-          createdAt: new Date()
-        })
+        details: `Created ${chores.length} chore auctions for week of ${weekStartDate.toLocaleDateString()}`
       }
     });
 
@@ -186,7 +172,7 @@ export async function POST(request: NextRequest) {
       success: true,
       message: `Successfully created ${chores.length} chore auctions`,
       auctionCount: chores.length,
-      endsAt: new Date(Date.now() + auctionDurationHours * 60 * 60 * 1000)
+      endTime: new Date(Date.now() + auctionDurationHours * 60 * 60 * 1000)
     });
 
   } catch (error) {

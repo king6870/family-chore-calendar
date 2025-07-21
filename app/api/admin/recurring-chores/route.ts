@@ -20,11 +20,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
     }
 
-    // Get chores that are marked as recurring (backward compatible)
+    // Get all chores (production schema doesn't support recurring distinction)
     const recurringChores = await prisma.chore.findMany({
       where: {
-        familyId: currentUser.family.id,
-        isRecurring: true
+        familyId: currentUser.family.id
       }
     });
 
@@ -77,19 +76,11 @@ export async function POST(request: NextRequest) {
       basePoints: parseInt(points),
       difficulty: difficulty || 'Easy',
       minAge: parseInt(minAge) || 0,
-      familyId: currentUser.family.id,
-      isRecurring: true
+      familyId: currentUser.family.id
     };
 
-    // Add recurring fields if they exist in schema (backward compatible)
-    try {
-      if (recurrenceType) choreData.recurrenceType = recurrenceType;
-      if (recurrenceInterval) choreData.recurrenceInterval = parseInt(recurrenceInterval);
-      if (recurrenceDays) choreData.recurrenceDays = recurrenceDays;
-    } catch (e) {
-      // Ignore if fields don't exist in production schema
-      console.log('Recurring fields not available in production schema');
-    }
+    // Skip recurring fields in production - they don't exist in the schema
+    console.log('Production schema - recurring fields not supported');
 
     let chore;
     if (choreId) {
@@ -142,10 +133,9 @@ export async function PUT(request: NextRequest) {
     const start = new Date(startDate);
     const end = new Date(endDate);
 
-    // Get recurring chores to process
+    // Get chores to process (production schema doesn't support recurring distinction)
     const whereClause = {
       familyId: currentUser.family.id,
-      isRecurring: true,
       ...(choreId && { id: choreId })
     };
 
