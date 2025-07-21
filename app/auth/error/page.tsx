@@ -1,85 +1,84 @@
 'use client'
 
 import { useSearchParams } from 'next/navigation'
-import { signIn } from 'next-auth/react'
-import { Suspense } from 'react'
+import Link from 'next/link'
 
-function AuthErrorContent() {
-  const searchParams = useSearchParams()
-  const error = searchParams.get('error')
-
-  const getErrorMessage = (error: string | null) => {
-    switch (error) {
-      case 'OAuthAccountNotLinked':
-        return 'This email is already associated with another account. Please sign in with the original provider.'
-      case 'EmailCreateAccount':
-        return 'Could not create account with this email.'
-      case 'Callback':
-        return 'Authentication callback error.'
-      case 'OAuthCallback':
-        return 'OAuth provider error.'
-      case 'OAuthCreateAccount':
-        return 'Could not create OAuth account.'
-      case 'EmailSignin':
-        return 'Email sign-in error.'
-      case 'CredentialsSignin':
-        return 'Invalid credentials.'
-      case 'SessionRequired':
-        return 'Please sign in to access this page.'
-      default:
-        return 'An authentication error occurred.'
-    }
-  }
-
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center" style={{ backgroundColor: '#f3f4f6' }}>
-      <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
-        <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold mb-2" style={{ color: '#dc2626' }}>🚫 Authentication Error</h1>
-          <p style={{ color: '#6b7280' }}>
-            {getErrorMessage(error)}
-          </p>
-        </div>
-        
-        <div className="space-y-4">
-          <button
-            onClick={() => signIn('google')}
-            className="w-full font-medium py-3 px-4 rounded-lg transition duration-200"
-            style={{ backgroundColor: '#3b82f6', color: 'white' }}
-            onMouseOver={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#2563eb'}
-            onMouseOut={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#3b82f6'}
-          >
-            Try Again with Google
-          </button>
-          
-          <button
-            onClick={() => window.location.href = '/'}
-            className="w-full font-medium py-3 px-4 rounded-lg transition duration-200"
-            style={{ backgroundColor: '#6b7280', color: 'white' }}
-            onMouseOver={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#4b5563'}
-            onMouseOut={(e) => (e.target as HTMLButtonElement).style.backgroundColor = '#6b7280'}
-          >
-            Go Home
-          </button>
-        </div>
-
-        {error === 'OAuthAccountNotLinked' && (
-          <div className="mt-6 p-4 rounded-lg" style={{ backgroundColor: '#fef3c7', border: '1px solid #f59e0b' }}>
-            <h3 className="font-semibold mb-2" style={{ color: '#92400e' }}>💡 Solution:</h3>
-            <p className="text-sm" style={{ color: '#92400e' }}>
-              Clear your browser cookies for this site and try signing in again, or use a different browser/incognito mode.
-            </p>
-          </div>
-        )}
-      </div>
-    </div>
-  )
+const errorMessages: Record<string, string> = {
+  Configuration: 'There is a problem with the server configuration.',
+  AccessDenied: 'Access denied. You do not have permission to sign in.',
+  Verification: 'The verification token has expired or has already been used.',
+  Default: 'An error occurred during authentication.',
+  Callback: 'Error in the OAuth callback. Please check your OAuth configuration.',
+  OAuthSignin: 'Error constructing an authorization URL.',
+  OAuthCallback: 'Error handling the response from the OAuth provider.',
+  OAuthCreateAccount: 'Could not create OAuth account in the database.',
+  EmailCreateAccount: 'Could not create email account in the database.',
+  Signin: 'Error signing in.',
+  OAuthAccountNotLinked: 'The OAuth account is not linked to any existing account.',
+  EmailSignin: 'Check your email for a sign in link.',
+  CredentialsSignin: 'Sign in failed. Check the details you provided are correct.',
+  SessionRequired: 'Please sign in to access this page.',
 }
 
 export default function AuthError() {
+  const searchParams = useSearchParams()
+  const error = searchParams.get('error')
+  const callbackUrl = searchParams.get('callbackUrl')
+
+  const errorMessage = error ? errorMessages[error] || errorMessages.Default : errorMessages.Default
+
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <AuthErrorContent />
-    </Suspense>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        <div>
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            Authentication Error
+          </h2>
+          <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-red-800">
+                  Error: {error || 'Unknown'}
+                </h3>
+                <div className="mt-2 text-sm text-red-700">
+                  <p>{errorMessage}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Debug Information */}
+          <div className="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-md">
+            <h4 className="text-sm font-medium text-gray-800 mb-2">Debug Information:</h4>
+            <div className="text-xs text-gray-600 space-y-1">
+              <p><strong>Error Code:</strong> {error || 'None'}</p>
+              <p><strong>Callback URL:</strong> {callbackUrl || 'None'}</p>
+              <p><strong>Current URL:</strong> {typeof window !== 'undefined' ? window.location.href : 'Server-side'}</p>
+            </div>
+          </div>
+
+          <div className="mt-6 space-y-4">
+            <Link
+              href="/api/auth/signin"
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              Try Again
+            </Link>
+            
+            <Link
+              href="/"
+              className="group relative w-full flex justify-center py-2 px-4 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              Go Home
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
   )
 }
