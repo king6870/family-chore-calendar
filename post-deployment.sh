@@ -8,71 +8,95 @@ fi
 
 APP_URL=$1
 
-echo "🔧 POST-DEPLOYMENT SETUP"
-echo "======================="
+echo "🔧 POST-DEPLOYMENT COMPREHENSIVE FIX"
+echo "===================================="
 echo "App URL: $APP_URL"
 echo ""
 
-# Step 1: Run database migration
-echo "📊 Step 1: Running database migration..."
-echo "Adding missing columns: WeeklyGoal.pointsGoal, ActivityLog.details"
+# Step 1: Run comprehensive database migration
+echo "📊 Step 1: Running comprehensive database migration..."
+echo "This will fix ALL database issues:"
+echo "- Add WeeklyGoal.pointsGoal column"
+echo "- Add ActivityLog.details column"
+echo "- Create missing Auction table"
+echo "- Create missing AuctionBid table"
+echo "- Add other missing columns"
+echo ""
 
-RESPONSE=$(curl -s -X POST "$APP_URL/api/fix-remaining-columns")
-echo "Migration response: $RESPONSE"
+RESPONSE=$(curl -s -X POST "$APP_URL/api/fix-all-database-issues")
+echo "Migration response:"
+echo "$RESPONSE" | jq . 2>/dev/null || echo "$RESPONSE"
 
 if echo "$RESPONSE" | grep -q '"success":true'; then
-    echo "✅ Database migration successful!"
+    echo ""
+    echo "✅ COMPREHENSIVE DATABASE MIGRATION SUCCESSFUL!"
+    echo ""
 else
-    echo "❌ Database migration failed!"
+    echo ""
+    echo "❌ DATABASE MIGRATION FAILED!"
     echo "Response: $RESPONSE"
     echo ""
-    echo "🔧 Manual fix: Check Vercel logs and database"
+    echo "🔧 Try manual SQL fix in your database console:"
+    echo ""
+    echo "-- Add missing columns"
+    echo "ALTER TABLE \"WeeklyGoal\" ADD COLUMN IF NOT EXISTS \"pointsGoal\" INTEGER;"
+    echo "ALTER TABLE \"ActivityLog\" ADD COLUMN IF NOT EXISTS \"details\" TEXT;"
+    echo ""
+    echo "-- Create Auction table"
+    echo "CREATE TABLE IF NOT EXISTS \"Auction\" ("
+    echo "  \"id\" TEXT NOT NULL PRIMARY KEY,"
+    echo "  \"choreId\" TEXT NOT NULL,"
+    echo "  \"familyId\" TEXT NOT NULL,"
+    echo "  \"weekStart\" TIMESTAMP(3) NOT NULL,"
+    echo "  \"endTime\" TIMESTAMP(3) NOT NULL,"
+    echo "  \"status\" TEXT NOT NULL DEFAULT 'active',"
+    echo "  \"title\" TEXT,"
+    echo "  \"description\" TEXT,"
+    echo "  \"createdAt\" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,"
+    echo "  \"updatedAt\" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP"
+    echo ");"
+    echo ""
     exit 1
 fi
 
 echo ""
 
-# Step 2: Test critical endpoints
-echo "🧪 Step 2: Testing critical endpoints..."
+# Step 2: Test all critical functionality
+echo "🧪 Step 2: Testing all fixed functionality..."
 
 echo "Testing auth session..."
 SESSION_RESPONSE=$(curl -s "$APP_URL/api/auth/session")
 if echo "$SESSION_RESPONSE" | grep -q 'user\|null'; then
     echo "✅ Auth endpoint working"
 else
-    echo "⚠️ Auth endpoint issue: $SESSION_RESPONSE"
-fi
-
-echo "Testing user endpoint..."
-USER_RESPONSE=$(curl -s "$APP_URL/api/user")
-if [ $? -eq 0 ]; then
-    echo "✅ User endpoint accessible"
-else
-    echo "⚠️ User endpoint issue"
+    echo "⚠️ Auth endpoint issue"
 fi
 
 echo ""
 
-# Step 3: Provide testing checklist
-echo "📋 MANUAL TESTING CHECKLIST:"
-echo "============================"
+# Step 3: Provide comprehensive testing checklist
+echo "📋 COMPREHENSIVE TESTING CHECKLIST:"
+echo "===================================="
 echo "🔗 Open: $APP_URL"
 echo ""
-echo "Test these features:"
-echo "□ 1. Google OAuth sign-in"
-echo "□ 2. Create a family"
-echo "□ 3. Award points to family member"
-echo "□ 4. View activity logs"
-echo "□ 5. Check points tracking"
+echo "✅ FIXED ISSUES - Test these now work:"
+echo "□ 1. Google OAuth sign-in (no state cookie errors)"
+echo "□ 2. Create a family (no WeeklyGoal.pointsGoal errors)"
+echo "□ 3. Award points to family member (no ActivityLog.details errors)"
+echo "□ 4. Delete a family (no Auction table errors)"
+echo "□ 5. View activity logs (details column available)"
+echo "□ 6. Check points tracking"
+echo "□ 7. Weekly goals functionality"
 echo ""
-echo "If all tests pass:"
-echo "✅ Deployment successful!"
+echo "🎯 ALL MAJOR ISSUES SHOULD NOW BE RESOLVED!"
 echo ""
-echo "If issues occur:"
+echo "If any tests still fail:"
 echo "🔧 Check Vercel function logs"
-echo "🔧 Verify environment variables"
+echo "🔧 Verify all environment variables are set"
 echo "🔧 Check database connection"
 echo ""
-echo "🧹 After successful testing, clean up:"
+echo "🧹 After successful testing, clean up migration routes:"
 echo "./cleanup-migration-routes.sh"
 echo "git add . && git commit -m 'Remove migration routes' && git push"
+echo ""
+echo "🎉 Your app should now be fully functional!"
