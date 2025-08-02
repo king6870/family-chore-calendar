@@ -114,8 +114,7 @@ export async function PATCH(
             userId: assignment.userId,
             familyId: assignment.familyId,
             action: 'completed_chore',
-            details: `Completed "${assignment.chore.name}" and earned ${assignment.chore.points} points`,
-            description: `Chore completed by ${assignment.user.nickname} on ${new Date().toLocaleDateString()}`
+            details: `Completed "${assignment.chore.name}" and earned ${assignment.chore.points} points. Chore completed by ${assignment.user.nickname} on ${new Date().toLocaleDateString()}`
           }
         });
       } catch (logError) {
@@ -158,8 +157,7 @@ export async function PATCH(
             userId: assignment.userId,
             familyId: assignment.familyId,
             action: 'uncompleted_chore',
-            details: `Marked "${assignment.chore.name}" as incomplete and removed ${assignment.chore.points} points`,
-            description: `Chore marked as incomplete by ${assignment.user.nickname} on ${new Date().toLocaleDateString()}`
+            details: `Marked "${assignment.chore.name}" as incomplete and removed ${assignment.chore.points} points. Chore marked as incomplete by ${assignment.user.nickname} on ${new Date().toLocaleDateString()}`
           }
         });
       } catch (logError) {
@@ -280,8 +278,7 @@ export async function PUT(
           userId: user.id,
           familyId: user.familyId,
           action: 'moved_chore',
-          details: `Moved "${existingAssignment.chore.name}" to ${targetUser.nickname} for ${dayOfWeek}`,
-          description: `Chore moved by ${user.nickname} on ${new Date().toLocaleDateString()}`
+          details: `Moved "${existingAssignment.chore.name}" to ${targetUser.nickname} for ${dayOfWeek}. Chore moved by ${user.nickname} on ${new Date().toLocaleDateString()}`
         }
       });
     } catch (logError) {
@@ -340,8 +337,7 @@ export async function DELETE(
           userId: user.id,
           familyId: user.familyId,
           action: 'removed_chore_assignment',
-          details: `Removed "${assignment.chore.name}" from ${assignment.user.nickname}`,
-          description: `Chore assignment removed by ${user.nickname} on ${new Date().toLocaleDateString()}`
+          details: `Removed "${assignment.chore.name}" from ${assignment.user.nickname}. Chore assignment removed by ${user.nickname} on ${new Date().toLocaleDateString()}`
         }
       });
     } catch (logError) {

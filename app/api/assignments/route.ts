@@ -167,8 +167,7 @@ export async function POST(request: NextRequest) {
           userId: user.id,
           familyId: user.familyId,
           action: 'assigned_chore',
-          details: `Assigned "${chore.name}" to ${targetUser.nickname} for ${dayOfWeek}`,
-          description: `Chore assigned by ${user.nickname} on ${new Date().toLocaleDateString()}`
+          details: `Assigned "${chore.name}" to ${targetUser.nickname} for ${dayOfWeek}. Chore assigned by ${user.nickname} on ${new Date().toLocaleDateString()}`
         }
       });
     } catch (logError) {
