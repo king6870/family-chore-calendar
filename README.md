@@ -182,3 +182,4 @@ Visit `http://localhost:3000` to get started!
 - Admin can adjust restrictions as needed
 
 This comprehensive chore calendar system helps families stay organized, teaches responsibility, and ensures fair distribution of household tasks!
+# Force deployment Fri Aug  1 22:09:41 PDT 2025
