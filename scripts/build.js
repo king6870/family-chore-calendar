@@ -36,6 +36,17 @@ try {
   console.log('📦 Generating Prisma client...');
   execSync('npx prisma generate', { stdio: 'inherit' });
   
+  // Run timezone migration for existing users in production
+  if (isProduction) {
+    console.log('🕐 Running timezone migration for existing users...');
+    try {
+      execSync('node scripts/add-timezone-support.js', { stdio: 'inherit' });
+      console.log('✅ Timezone migration completed');
+    } catch (migrationError) {
+      console.log('⚠️ Timezone migration failed (this is OK for first deployment):', migrationError.message);
+    }
+  }
+  
   // Build Next.js
   console.log('🏗️ Building Next.js application...');
   execSync('npx next build', { stdio: 'inherit' });
