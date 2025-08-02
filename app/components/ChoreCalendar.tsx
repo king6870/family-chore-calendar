@@ -529,7 +529,7 @@ export default function ChoreCalendar({ currentUser }: ChoreCalendarProps) {
           
           // Handle both new assignments and existing assignments
           if (result.message && result.message.includes('already exists')) {
-            setMessage({ type: 'info', text: 'Chore is already assigned to this user on this date' });
+            setMessage({ type: 'success', text: 'Chore is already assigned to this user on this date' });
           } else {
             setMessage({ type: 'success', text: 'Chore assigned successfully!' });
           }
