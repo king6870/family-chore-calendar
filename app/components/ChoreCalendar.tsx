@@ -367,8 +367,8 @@ export default function ChoreCalendar({ currentUser }: ChoreCalendarProps) {
 
       // Check for duplicate assignment
       const existingAssignment = assignments.find(a => 
-        a.userId === targetUserId && 
-        a.choreId === draggedChore.id && 
+        a.user.id === targetUserId && 
+        a.chore.id === draggedChore.id && 
         a.date.split('T')[0] === targetDate.toISOString().split('T')[0]
       );
 
@@ -399,11 +399,11 @@ export default function ChoreCalendar({ currentUser }: ChoreCalendarProps) {
       }
 
       // Check for duplicate if moving to different user/date
-      if (targetUserId !== draggedAssignment.userId || 
+      if (targetUserId !== draggedAssignment.user.id || 
           targetDate.toISOString().split('T')[0] !== draggedAssignment.date.split('T')[0]) {
         const existingAssignment = assignments.find(a => 
-          a.userId === targetUserId && 
-          a.choreId === draggedAssignment.choreId && 
+          a.user.id === targetUserId && 
+          a.chore.id === draggedAssignment.chore.id && 
           a.date.split('T')[0] === targetDate.toISOString().split('T')[0] &&
           a.id !== draggedAssignment.id
         );
