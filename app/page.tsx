@@ -3,6 +3,7 @@
 import { useSession, signIn, signOut } from 'next-auth/react'
 import { useState, useEffect } from 'react'
 import FamilyManager from './components/FamilyManager'
+import FamilyManagerEnhanced from './components/FamilyManagerEnhanced'
 import AdminPanel from './components/AdminPanel'
 import PointsTracker from './components/PointsTracker'
 import PointsDisplay from './components/PointsDisplay'
@@ -110,7 +111,30 @@ export default function Home() {
   if (session && (!user || !user.familyId)) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#f3f4f6' }}>
-        <FamilyManager onFamilyCreated={fetchUserData} />
+        <FamilyManagerEnhanced 
+          currentUser={user ? {
+            id: user.id,
+            name: user.name,
+            nickname: user.nickname || '',
+            age: user.age || 0,
+            isAdmin: user.isAdmin,
+            isOwner: user.isOwner,
+            totalPoints: user.totalPoints,
+            email: user.email
+          } : {
+            id: '',
+            name: session.user?.name || '',
+            nickname: '',
+            age: 0,
+            isAdmin: false,
+            isOwner: false,
+            totalPoints: 0,
+            email: session.user?.email || ''
+          }}
+          family={null}
+          onFamilyCreated={fetchUserData}
+          onRefresh={fetchUserData}
+        />
       </div>
     )
   }
@@ -341,42 +365,23 @@ export default function Home() {
             }} />
           )}
 
-          {/* Family Section */}
+          {/* Family Section - Enhanced for Local Development */}
           {activeSection === 'family' && (
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h2 className="text-2xl font-bold mb-4" style={{ color: '#1f2937' }}>👥 Family Management</h2>
-              <div className="space-y-4">
-                <div className="p-4 border rounded-lg" style={{ backgroundColor: '#f0fdf4' }}>
-                  <h3 className="font-semibold mb-2" style={{ color: '#166534' }}>Family Information</h3>
-                  <p className="text-sm mb-2" style={{ color: '#15803d' }}>
-                    <strong>Family Name:</strong> {family.name}
-                  </p>
-                  <p className="text-sm mb-2" style={{ color: '#15803d' }}>
-                    <strong>Invite Code:</strong> <code style={{ backgroundColor: '#dcfce7', padding: '2px 6px', borderRadius: '4px' }}>{family.inviteCode}</code>
-                  </p>
-                  <p className="text-sm" style={{ color: '#15803d' }}>
-                    <strong>Your Role:</strong> {user.isAdmin ? 'Admin' : 'Member'}
-                  </p>
-                </div>
-                
-                <div className="p-4 border rounded-lg">
-                  <h3 className="font-semibold mb-2" style={{ color: '#1f2937' }}>Share Invite Code</h3>
-                  <p className="text-sm mb-3" style={{ color: '#6b7280' }}>
-                    Share this code with family members so they can join: <strong>{family.inviteCode}</strong>
-                  </p>
-                  <button 
-                    className="px-4 py-2 rounded-lg"
-                    style={{ backgroundColor: '#3b82f6', color: 'white' }}
-                    onClick={() => {
-                      navigator.clipboard.writeText(family.inviteCode)
-                      alert('Invite code copied to clipboard!')
-                    }}
-                  >
-                    Copy Invite Code
-                  </button>
-                </div>
-              </div>
-            </div>
+            <FamilyManagerEnhanced
+              currentUser={{
+                id: user.id,
+                name: user.name,
+                nickname: user.nickname,
+                age: user.age,
+                isAdmin: user.isAdmin,
+                isOwner: user.isOwner,
+                totalPoints: user.totalPoints,
+                email: user.email
+              }}
+              family={family}
+              onFamilyCreated={fetchUserData}
+              onRefresh={fetchUserData}
+            />
           )}
           {/* Admin Section */}
           {activeSection === 'admin' && user.isAdmin && (

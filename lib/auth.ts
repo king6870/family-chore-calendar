@@ -11,6 +11,13 @@ export const authOptions: NextAuthOptions = {
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       allowDangerousEmailAccountLinking: true,
+      authorization: {
+        params: {
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code"
+        }
+      }
     }),
     ...(process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET ? [
       GitHubProvider({
@@ -24,12 +31,92 @@ export const authOptions: NextAuthOptions = {
     strategy: "database",
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
+  pages: {
+    signIn: '/auth/signin',
+    error: '/auth/error',
+  },
+  debug: process.env.NODE_ENV === 'development',
+  useSecureCookies: process.env.NODE_ENV === 'production',
+  cookies: {
+    sessionToken: {
+      name: `next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+      },
+    },
+    callbackUrl: {
+      name: `next-auth.callback-url`,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+      },
+    },
+    csrfToken: {
+      name: `next-auth.csrf-token`,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+      },
+    },
+    pkceCodeVerifier: {
+      name: `next-auth.pkce.code_verifier`,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 900, // 15 minutes
+      },
+    },
+    state: {
+      name: `next-auth.state`,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 900, // 15 minutes
+      },
+    },
+    nonce: {
+      name: `next-auth.nonce`,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+      },
+    },
+  },
   callbacks: {
     async signIn({ user, account, profile }) {
-      // Always allow sign in - bypass any restrictions
-      return true
+      console.log("🔐 SignIn callback triggered:", { 
+        email: user.email, 
+        provider: account?.provider,
+        type: account?.type 
+      })
+      
+      try {
+        // Always allow sign in - bypass any restrictions
+        return true
+      } catch (error) {
+        console.error("❌ SignIn callback error:", error)
+        return false
+      }
     },
     async session({ session, user }) {
+      console.log("📋 Session callback:", { 
+        sessionUser: session?.user?.email,
+        dbUser: user?.id 
+      })
+      
       if (session?.user && user) {
         session.user.id = user.id
       }
@@ -38,7 +125,7 @@ export const authOptions: NextAuthOptions = {
   },
   events: {
     async signIn({ user, account }) {
-      console.log("Sign in successful:", user.email)
+      console.log("✅ Sign in successful:", user.email, "via", account?.provider)
       
       // Clean up any duplicate accounts for this email
       try {
@@ -48,6 +135,7 @@ export const authOptions: NextAuthOptions = {
         })
         
         if (existingUser && existingUser.accounts.length > 1) {
+          console.log("🧹 Cleaning up duplicate accounts for:", user.email)
           // Keep only the most recent account
           const oldAccounts = existingUser.accounts.slice(0, -1)
           for (const oldAccount of oldAccounts) {
@@ -55,13 +143,8 @@ export const authOptions: NextAuthOptions = {
           }
         }
       } catch (error) {
-        console.log("Account cleanup error (non-critical):", (error as Error).message)
+        console.log("⚠️ Account cleanup error (non-critical):", (error as Error).message)
       }
     },
   },
-  pages: {
-    signIn: '/',
-    error: '/auth/error',
-  },
-  debug: process.env.NODE_ENV === 'development',
 }

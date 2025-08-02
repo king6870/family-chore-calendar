@@ -8,8 +8,17 @@ const prisma = new PrismaClient();
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+    if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Get user from database
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email }
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     const { weekStart } = await request.json();
@@ -20,7 +29,7 @@ export async function POST(request: NextRequest) {
 
     // Verify admin permissions
     const adminUser = await prisma.user.findUnique({
-      where: { id: session.user.id },
+      where: { id: user.id },
       include: { family: true }
     });
 
@@ -176,10 +185,11 @@ export async function POST(request: NextRequest) {
     await prisma.activityLog.create({
       data: {
         id: `balance_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        userId: session.user.id,
+        userId: user.id,
         familyId: adminUser.familyId,
         action: 'CHORES_BALANCED',
         details: `Balanced chore distribution for week of ${weekStartDate.toLocaleDateString()}`,
+        description: `Distributed ${assignmentsToCreate.length} chores across ${familyMembers.length} family members.`,
         createdAt: new Date()
       }
     });
@@ -220,8 +230,17 @@ function calculateBalanceScore(memberAssignments: any[]): number {
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+    if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Get user from database
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email }
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     const { searchParams } = new URL(request.url);
@@ -231,11 +250,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Week start parameter required' }, { status: 400 });
     }
 
-    // Get user and verify family access
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id }
-    });
-
+    // Verify family access
     if (!user?.familyId) {
       return NextResponse.json({ error: 'User not in a family' }, { status: 400 });
     }

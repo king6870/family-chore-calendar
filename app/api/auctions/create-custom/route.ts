@@ -23,8 +23,17 @@ interface CustomAuctionRequest {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+    if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Get user from database
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email }
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     const { 
@@ -44,7 +53,7 @@ export async function POST(request: NextRequest) {
 
     // Verify owner permissions
     const ownerUser = await prisma.user.findUnique({
-      where: { id: session.user.id },
+      where: { id: user.id },
       include: { family: true }
     });
 
@@ -186,10 +195,11 @@ export async function POST(request: NextRequest) {
     await prisma.activityLog.create({
       data: {
         id: `log_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        userId: session.user.id,
+        userId: user.id,
         familyId: ownerUser.familyId,
         action: 'CUSTOM_AUCTIONS_CREATED',
-        details: `Created custom auction with ${results.newChoresCreated} new chores and ${existingChores.length} existing chores`
+        details: `Created custom auction with ${results.newChoresCreated} new chores and ${existingChores.length} existing chores`,
+        description: `Custom auction created by ${user.nickname} on ${new Date().toLocaleDateString()}`
       }
     });
 

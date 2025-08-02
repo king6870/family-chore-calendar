@@ -8,8 +8,17 @@ const prisma = new PrismaClient();
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+    if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Get user from database
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email }
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     const { weekStart } = await request.json();
@@ -20,7 +29,7 @@ export async function POST(request: NextRequest) {
 
     // Verify admin permissions
     const adminUser = await prisma.user.findUnique({
-      where: { id: session.user.id }
+      where: { id: user.id }
     });
 
     if (!adminUser?.isAdmin || !adminUser.familyId) {
@@ -187,10 +196,11 @@ export async function POST(request: NextRequest) {
     await prisma.activityLog.create({
       data: {
         id: `log_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        userId: session.user.id,
+        userId: user.id,
         familyId: adminUser.familyId,
         action: 'AUCTIONS_FINALIZED',
-        details: `Finalized ${results.finalized} auctions for week of ${weekStartDate.toLocaleDateString()}`
+        details: `Finalized ${results.finalized} auctions for week of ${weekStartDate.toLocaleDateString()}`,
+        description: `Auctions finalized by ${user.nickname} on ${new Date().toLocaleDateString()}`
       }
     });
 
