@@ -160,15 +160,20 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // Log the activity
-    await prisma.activityLog.create({
-      data: {
-        userId: user.id,
-        familyId: user.familyId,
-        action: 'assigned_chore',
-        description: `Assigned "${chore.name}" to ${targetUser.nickname} for ${dayOfWeek}`
-      }
-    })
+    // Log the activity (non-blocking)
+    try {
+      await prisma.activityLog.create({
+        data: {
+          userId: user.id,
+          familyId: user.familyId,
+          action: 'assigned_chore',
+          details: `Assigned "${chore.name}" to ${targetUser.nickname} for ${dayOfWeek}`
+        }
+      });
+    } catch (logError) {
+      console.error('Failed to create activity log:', logError);
+      // Continue with the main operation even if logging fails
+    }
 
     return NextResponse.json({ assignment })
   } catch (error) {

@@ -198,7 +198,7 @@ export async function POST(request: NextRequest) {
         userId: user.id,
         familyId: ownerUser.familyId,
         action: 'CUSTOM_AUCTIONS_CREATED',
-        description: `Created custom auction with ${results.newChoresCreated} new chores and ${existingChores.length} existing chores`
+        details: `Created custom auction with ${results.newChoresCreated} new chores and ${existingChores.length} existing chores`
       }
     });
 

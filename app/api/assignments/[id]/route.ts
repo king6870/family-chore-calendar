@@ -107,15 +107,19 @@ export async function PATCH(
         }
       })
 
-      // Log the activity
-      await prisma.activityLog.create({
-        data: {
-          userId: assignment.userId,
-          familyId: assignment.familyId,
-          action: 'completed_chore',
-          description: `Completed "${assignment.chore.name}" and earned ${assignment.chore.points} points`
-        }
-      })
+      // Log the activity (non-blocking)
+      try {
+        await prisma.activityLog.create({
+          data: {
+            userId: assignment.userId,
+            familyId: assignment.familyId,
+            action: 'completed_chore',
+            details: `Completed "${assignment.chore.name}" and earned ${assignment.chore.points} points`
+          }
+        });
+      } catch (logError) {
+        console.error('Failed to create activity log:', logError);
+      }
     } else if (!completed && assignment.completed) {
       // If marking as incomplete, remove points
       // Find and delete the points record
@@ -146,15 +150,19 @@ export async function PATCH(
         })
       }
 
-      // Log the activity
-      await prisma.activityLog.create({
-        data: {
-          userId: assignment.userId,
-          familyId: assignment.familyId,
-          action: 'uncompleted_chore',
-          description: `Marked "${assignment.chore.name}" as incomplete and removed ${assignment.chore.points} points`
-        }
-      })
+      // Log the activity (non-blocking)
+      try {
+        await prisma.activityLog.create({
+          data: {
+            userId: assignment.userId,
+            familyId: assignment.familyId,
+            action: 'uncompleted_chore',
+            details: `Marked "${assignment.chore.name}" as incomplete and removed ${assignment.chore.points} points`
+          }
+        });
+      } catch (logError) {
+        console.error('Failed to create activity log:', logError);
+      }
     }
 
     return NextResponse.json({ assignment: updatedAssignment })
@@ -263,15 +271,19 @@ export async function PUT(
       }
     })
 
-    // Log the activity
-    await prisma.activityLog.create({
-      data: {
-        userId: user.id,
-        familyId: user.familyId,
-        action: 'moved_chore',
-        description: `Moved "${existingAssignment.chore.name}" to ${targetUser.nickname} for ${dayOfWeek}`
-      }
-    })
+    // Log the activity (non-blocking)
+    try {
+      await prisma.activityLog.create({
+        data: {
+          userId: user.id,
+          familyId: user.familyId,
+          action: 'moved_chore',
+          details: `Moved "${existingAssignment.chore.name}" to ${targetUser.nickname} for ${dayOfWeek}`
+        }
+      });
+    } catch (logError) {
+      console.error('Failed to create activity log:', logError);
+    }
 
     return NextResponse.json({ assignment: updatedAssignment })
   } catch (error) {
@@ -318,15 +330,19 @@ export async function DELETE(
       where: { id: assignmentId }
     })
 
-    // Log the activity
-    await prisma.activityLog.create({
-      data: {
-        userId: user.id,
-        familyId: user.familyId,
-        action: 'removed_chore_assignment',
-        description: `Removed "${assignment.chore.name}" from ${assignment.user.nickname}`
-      }
-    })
+    // Log the activity (non-blocking)
+    try {
+      await prisma.activityLog.create({
+        data: {
+          userId: user.id,
+          familyId: user.familyId,
+          action: 'removed_chore_assignment',
+          details: `Removed "${assignment.chore.name}" from ${assignment.user.nickname}`
+        }
+      });
+    } catch (logError) {
+      console.error('Failed to create activity log:', logError);
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {
