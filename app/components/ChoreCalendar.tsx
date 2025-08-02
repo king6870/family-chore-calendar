@@ -358,9 +358,10 @@ export default function ChoreCalendar({ currentUser }: ChoreCalendarProps) {
       }
 
       // Check age requirement
-      if (draggedChore.minAge && targetUser.age < draggedChore.minAge) {
+      const choreMinAge = (draggedChore as any).minAge;
+      if (choreMinAge && targetUser.age < choreMinAge) {
         return { 
-          error: `❌ ${targetUser.nickname} is too young!\nRequires age ${draggedChore.minAge}+ (they are ${targetUser.age})`,
+          error: `❌ ${targetUser.nickname} is too young!\nRequires age ${choreMinAge}+ (they are ${targetUser.age})`,
           type: 'age'
         };
       }
@@ -391,9 +392,10 @@ export default function ChoreCalendar({ currentUser }: ChoreCalendarProps) {
       }
 
       // Check age requirement for the chore being moved
-      if (draggedAssignment.chore.minAge && targetUser.age < draggedAssignment.chore.minAge) {
+      const choreMinAge = (draggedAssignment.chore as any).minAge;
+      if (choreMinAge && targetUser.age < choreMinAge) {
         return { 
-          error: `❌ ${targetUser.nickname} is too young!\nRequires age ${draggedAssignment.chore.minAge}+ (they are ${targetUser.age})`,
+          error: `❌ ${targetUser.nickname} is too young!\nRequires age ${choreMinAge}+ (they are ${targetUser.age})`,
           type: 'age'
         };
       }
@@ -482,7 +484,8 @@ export default function ChoreCalendar({ currentUser }: ChoreCalendarProps) {
         
         switch (validation.type) {
           case 'age':
-            warningMessage = `🚫 Age Restriction Violation!\n\n${targetUser?.nickname || 'This family member'} is too young for "${draggedChore?.name || draggedAssignment?.chore.name}".\n\nRequired age: ${draggedChore?.minAge || draggedAssignment?.chore.minAge}+\nActual age: ${targetUser?.age}\n\nThe chore has been returned to the available chores.`;
+            const minAge = (draggedChore as any)?.minAge || (draggedAssignment?.chore as any)?.minAge;
+            warningMessage = `🚫 Age Restriction Violation!\n\n${targetUser?.nickname || 'This family member'} is too young for "${draggedChore?.name || draggedAssignment?.chore.name}".\n\nRequired age: ${minAge}+\nActual age: ${targetUser?.age}\n\nThe chore has been returned to the available chores.`;
             break;
           case 'date':
             warningMessage = `🚫 Invalid Date!\n\nYou cannot assign chores to past dates.\n\nPlease select today or a future date.\n\nThe chore has been returned to the available chores.`;
@@ -662,10 +665,10 @@ export default function ChoreCalendar({ currentUser }: ChoreCalendarProps) {
                   onDragStart={(e) => handleDragStart(e, chore, 'chore')}
                   onDragEnd={handleDragEnd}
                   className={`px-3 py-2 rounded-lg border-2 cursor-move hover:shadow-md transition-all ${getDifficultyColor(chore.difficulty)}`}
-                  title={`${chore.name} - ${chore.points} points - Min age: ${chore.minAge || 'Any'}`}
+                  title={`${chore.name} - ${chore.points} points - Min age: ${(chore as any).minAge || 'Any'}`}
                 >
                   <div className="text-sm font-medium">{chore.name}</div>
-                  <div className="text-xs">{chore.points}pts • Age {chore.minAge || 'Any'}+</div>
+                  <div className="text-xs">{chore.points}pts • Age {(chore as any).minAge || 'Any'}+</div>
                 </div>
               ))}
               {availableChores.length === 0 && (
