@@ -139,7 +139,10 @@ export default function ChoreCalendar({ currentUser }: ChoreCalendarProps) {
   const fetchAssignments = async () => {
     try {
       setLoading(true);
-      const weekStartStr = currentWeek.toISOString();
+      // Ensure we send midnight UTC for the week start
+      const weekStartUTC = new Date(currentWeek);
+      weekStartUTC.setUTCHours(0, 0, 0, 0);
+      const weekStartStr = weekStartUTC.toISOString();
       console.log('Fetching assignments for week starting:', weekStartStr);
       const response = await fetch(`/api/assignments?weekStart=${weekStartStr}`);
       if (response.ok) {

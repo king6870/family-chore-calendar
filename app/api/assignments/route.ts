@@ -27,8 +27,18 @@ export async function GET(request: NextRequest) {
     }
 
     const startDate = new Date(weekStart)
+    // Ensure we start from midnight UTC
+    startDate.setUTCHours(0, 0, 0, 0)
+    
     const endDate = new Date(startDate)
-    endDate.setDate(startDate.getDate() + 6)
+    endDate.setUTCDate(startDate.getUTCDate() + 6)
+    endDate.setUTCHours(23, 59, 59, 999)
+    
+    console.log('Date range for assignments:', { 
+      weekStart, 
+      startDate: startDate.toISOString(), 
+      endDate: endDate.toISOString() 
+    });
 
     const assignments = await prisma.choreAssignment.findMany({
       where: {
