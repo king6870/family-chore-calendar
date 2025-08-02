@@ -12,13 +12,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Get user from database
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email }
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
     const { auctionId, bidPoints } = await request.json();
 
     if (!auctionId || !bidPoints || bidPoints <= 0) {
       return NextResponse.json({ error: 'Auction ID and valid bid points are required' }, { status: 400 });
     }
 
-    // Get user and verify family access
+    // Verify family access
     if (!user?.familyId) {
       return NextResponse.json({ error: 'User not in a family' }, { status: 400 });
     }
