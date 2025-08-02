@@ -651,33 +651,6 @@ export default function ChoreCalendar({ currentUser }: ChoreCalendarProps) {
             <h2 className="text-2xl font-bold text-gray-800">
               {currentUser.isAdmin ? '📅 Family Chore Calendar' : '📅 Your Chore Calendar'}
             </h2>
-            <p className="text-gray-600 mt-1">{formatWeekRange(currentWeek)}</p>
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => navigateWeek('prev')}
-              className="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-              disabled={loading}
-            >
-              ← Previous
-            </button>
-            
-            <button
-              onClick={goToCurrentWeek}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              disabled={loading}
-            >
-              Today
-            </button>
-            
-            <button
-              onClick={() => navigateWeek('next')}
-              className="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-              disabled={loading}
-            >
-              Next →
-            </button>
           </div>
         </div>
 
@@ -735,6 +708,37 @@ export default function ChoreCalendar({ currentUser }: ChoreCalendarProps) {
           </div>
         )}
 
+      </div>
+
+      {/* Week Navigation - Right next to calendar */}
+      <div className="flex justify-center items-center gap-3 mb-4">
+        <button
+          onClick={() => navigateWeek('prev')}
+          className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2"
+          disabled={loading}
+        >
+          ← Previous Week
+        </button>
+        
+        <div className="px-4 py-2 bg-blue-50 text-blue-800 rounded-lg font-medium">
+          {formatWeekRange(currentWeek)}
+        </div>
+        
+        <button
+          onClick={goToCurrentWeek}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          disabled={loading}
+        >
+          This Week
+        </button>
+        
+        <button
+          onClick={() => navigateWeek('next')}
+          className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors flex items-center gap-2"
+          disabled={loading}
+        >
+          Next Week →
+        </button>
       </div>
 
       {/* Calendar Grid */}
