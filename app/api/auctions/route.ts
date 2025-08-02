@@ -9,7 +9,7 @@ const prisma = new PrismaClient();
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+    if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -21,9 +21,6 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user and verify family access
-    const user = await prisma.user.findUnique({
-      where: { id: user.id }
-    });
 
     if (!user?.familyId) {
       return NextResponse.json({ error: 'User not in a family' }, { status: 400 });
@@ -74,7 +71,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+    if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 

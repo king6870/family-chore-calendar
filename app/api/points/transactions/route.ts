@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic'
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+    if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -20,10 +20,6 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20');
 
     // Get user and verify family access
-    const user = await prisma.user.findUnique({
-      where: { id: user.id },
-      include: { family: true }
-    });
 
     if (!user?.familyId) {
       return NextResponse.json({ error: 'User not in a family' }, { status: 400 });

@@ -11,30 +11,10 @@ export const dynamic = 'force-dynamic'
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+    if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: user.id },
-      select: {
-        id: true,
-        name: true,
-        nickname: true,
-        email: true,
-        age: true,
-        totalPoints: true,
-        isAdmin: true,
-        isOwner: true,
-        familyId: true,
-        family: {
-          select: {
-            id: true,
-            name: true
-          }
-        }
-      }
-    });
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
