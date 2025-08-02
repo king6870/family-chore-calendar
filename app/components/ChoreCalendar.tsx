@@ -526,7 +526,14 @@ export default function ChoreCalendar({ currentUser }: ChoreCalendarProps) {
         if (response.ok) {
           const result = await response.json();
           console.log('Assignment created successfully:', result);
-          setMessage({ type: 'success', text: 'Chore assigned successfully!' });
+          
+          // Handle both new assignments and existing assignments
+          if (result.message && result.message.includes('already exists')) {
+            setMessage({ type: 'info', text: 'Chore is already assigned to this user on this date' });
+          } else {
+            setMessage({ type: 'success', text: 'Chore assigned successfully!' });
+          }
+          
           await fetchAssignments(); // Wait for assignments to refresh
         } else {
           const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));

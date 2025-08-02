@@ -99,11 +99,20 @@ export async function POST(request: NextRequest) {
           choreId,
           date: new Date(date)
         }
+      },
+      include: {
+        chore: true,
+        user: true
       }
     })
 
     if (existingAssignment) {
-      return NextResponse.json({ error: 'Assignment already exists' }, { status: 400 })
+      // If assignment already exists, return it instead of creating a new one
+      console.log('Assignment already exists, returning existing assignment:', existingAssignment.id)
+      return NextResponse.json({ 
+        assignment: existingAssignment,
+        message: 'Assignment already exists for this user and date'
+      })
     }
 
     // Verify user belongs to same family
