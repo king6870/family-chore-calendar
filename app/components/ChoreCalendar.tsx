@@ -139,12 +139,16 @@ export default function ChoreCalendar({ currentUser }: ChoreCalendarProps) {
   const fetchAssignments = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/assignments?weekStart=${currentWeek.toISOString()}`);
+      const weekStartStr = currentWeek.toISOString();
+      console.log('Fetching assignments for week starting:', weekStartStr);
+      const response = await fetch(`/api/assignments?weekStart=${weekStartStr}`);
       if (response.ok) {
         const data = await response.json();
         // Handle both possible response formats and ensure it's an array
         const assignmentsData = data.assignments || data || [];
-        setAssignments(Array.isArray(assignmentsData) ? assignmentsData : []);
+        const assignmentsArray = Array.isArray(assignmentsData) ? assignmentsData : [];
+        console.log('Fetched assignments:', assignmentsArray.length, assignmentsArray);
+        setAssignments(assignmentsArray);
       } else {
         console.error('Failed to fetch assignments');
         setAssignments([]);
@@ -229,6 +233,8 @@ export default function ChoreCalendar({ currentUser }: ChoreCalendarProps) {
 
   const getAssignmentsForDate = (date: Date): ChoreAssignment[] => {
     const dateStr = date.toISOString().split('T')[0];
+    const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+    
     // Ensure assignments is an array before filtering
     if (!Array.isArray(assignments)) {
       return [];
@@ -237,6 +243,12 @@ export default function ChoreCalendar({ currentUser }: ChoreCalendarProps) {
     let filteredAssignments = assignments.filter(assignment => 
       assignment.date.split('T')[0] === dateStr
     );
+    
+    // Debug logging for Sunday specifically
+    if (dayName === 'Sunday') {
+      console.log(`Sunday (${dateStr}) assignments:`, filteredAssignments);
+      console.log('All assignments:', assignments.map(a => ({ date: a.date.split('T')[0], dayOfWeek: a.dayOfWeek, chore: a.chore.name })));
+    }
     
     // For non-admins, only show their own chores
     if (!currentUser.isAdmin) {
@@ -526,6 +538,8 @@ export default function ChoreCalendar({ currentUser }: ChoreCalendarProps) {
         if (response.ok) {
           const result = await response.json();
           console.log('Assignment created successfully:', result);
+          console.log('Target date:', targetDate.toISOString().split('T')[0]);
+          console.log('Day of week:', targetDate.toLocaleDateString('en-US', { weekday: 'long' }));
           
           // Handle both new assignments and existing assignments
           if (result.message && result.message.includes('already exists')) {
@@ -535,6 +549,7 @@ export default function ChoreCalendar({ currentUser }: ChoreCalendarProps) {
           }
           
           await fetchAssignments(); // Wait for assignments to refresh
+          console.log('Assignments after refresh:', assignments.length);
         } else {
           const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
           console.error('Assignment creation failed:', response.status, errorData);
