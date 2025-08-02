@@ -178,8 +178,7 @@ export async function POST(request: NextRequest) {
         userId: user.id,
         familyId: adminUser.familyId,
         action: 'AUCTIONS_CREATED',
-        details: `Created ${chores.length} chore auctions for week of ${weekStartDate.toLocaleDateString()}`,
-        description: `Auctions created by ${user.nickname} on ${new Date().toLocaleDateString()}`
+        details: `Created ${chores.length} chore auctions for week of ${weekStartDate.toLocaleDateString()}. Auctions created by ${user.nickname} on ${new Date().toLocaleDateString()}`
       }
     });
 
