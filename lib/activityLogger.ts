@@ -5,46 +5,18 @@ interface ActivityLogData {
   familyId: string;
   action: string;
   details?: string;
-  description?: string;
 }
 
 export async function createActivityLog(data: ActivityLogData) {
   try {
-    // Try with details field first (local schema)
-    if (data.details) {
-      return await prisma.activityLog.create({
-        data: {
-          userId: data.userId,
-          familyId: data.familyId,
-          action: data.action,
-          details: data.details,
-          description: data.description
-        }
-      });
-    }
-    
-    // Try with description field (production schema)
-    if (data.description) {
-      return await prisma.activityLog.create({
-        data: {
-          userId: data.userId,
-          familyId: data.familyId,
-          action: data.action,
-          description: data.description
-        } as any // Type assertion to handle schema mismatch
-      });
-    }
-
-    // Fallback - try both fields
-    const logData = data.details || data.description;
+    // Create ActivityLog with details field only
     return await prisma.activityLog.create({
       data: {
         userId: data.userId,
         familyId: data.familyId,
         action: data.action,
-        details: logData,
-        description: logData
-      } as any
+        details: data.details || null
+      }
     });
     
   } catch (error) {
