@@ -12,13 +12,21 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Get user from database
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email }
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId') || user.id;
     const timeframe = searchParams.get('timeframe') || 'week';
     const includeRanking = searchParams.get('includeRanking') === 'true';
 
-    // Get user and verify family access
-
+    // Verify family access
     if (!user?.familyId) {
       return NextResponse.json({ error: 'User not in a family' }, { status: 400 });
     }
@@ -256,6 +264,15 @@ export async function POST(request: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Get user from database
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email }
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
     const { choreAssignmentId, points, choreId } = await request.json();
