@@ -189,6 +189,7 @@ export async function POST(request: NextRequest) {
         familyId: adminUser.familyId,
         action: 'CHORES_BALANCED',
         details: `Balanced chore distribution for week of ${weekStartDate.toLocaleDateString()}`,
+        description: `Distributed ${assignmentsToCreate.length} chores across ${familyMembers.length} family members.`,
         createdAt: new Date()
       }
     });

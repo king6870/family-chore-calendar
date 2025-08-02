@@ -198,7 +198,8 @@ export async function POST(request: NextRequest) {
         userId: user.id,
         familyId: ownerUser.familyId,
         action: 'CUSTOM_AUCTIONS_CREATED',
-        details: `Created custom auction with ${results.newChoresCreated} new chores and ${existingChores.length} existing chores`
+        details: `Created custom auction with ${results.newChoresCreated} new chores and ${existingChores.length} existing chores`,
+        description: `Custom auction created by ${user.nickname} on ${new Date().toLocaleDateString()}`
       }
     });
 

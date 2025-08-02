@@ -199,7 +199,8 @@ export async function POST(request: NextRequest) {
         userId: user.id,
         familyId: adminUser.familyId,
         action: 'AUCTIONS_FINALIZED',
-        details: `Finalized ${results.finalized} auctions for week of ${weekStartDate.toLocaleDateString()}`
+        details: `Finalized ${results.finalized} auctions for week of ${weekStartDate.toLocaleDateString()}`,
+        description: `Auctions finalized by ${user.nickname} on ${new Date().toLocaleDateString()}`
       }
     });
 

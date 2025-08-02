@@ -114,7 +114,8 @@ export async function PATCH(
             userId: assignment.userId,
             familyId: assignment.familyId,
             action: 'completed_chore',
-            details: `Completed "${assignment.chore.name}" and earned ${assignment.chore.points} points`
+            details: `Completed "${assignment.chore.name}" and earned ${assignment.chore.points} points`,
+            description: `Chore completed by ${assignment.user.nickname} on ${new Date().toLocaleDateString()}`
           }
         });
       } catch (logError) {
@@ -157,7 +158,8 @@ export async function PATCH(
             userId: assignment.userId,
             familyId: assignment.familyId,
             action: 'uncompleted_chore',
-            details: `Marked "${assignment.chore.name}" as incomplete and removed ${assignment.chore.points} points`
+            details: `Marked "${assignment.chore.name}" as incomplete and removed ${assignment.chore.points} points`,
+            description: `Chore marked as incomplete by ${assignment.user.nickname} on ${new Date().toLocaleDateString()}`
           }
         });
       } catch (logError) {
@@ -278,7 +280,8 @@ export async function PUT(
           userId: user.id,
           familyId: user.familyId,
           action: 'moved_chore',
-          details: `Moved "${existingAssignment.chore.name}" to ${targetUser.nickname} for ${dayOfWeek}`
+          details: `Moved "${existingAssignment.chore.name}" to ${targetUser.nickname} for ${dayOfWeek}`,
+          description: `Chore moved by ${user.nickname} on ${new Date().toLocaleDateString()}`
         }
       });
     } catch (logError) {
@@ -337,7 +340,8 @@ export async function DELETE(
           userId: user.id,
           familyId: user.familyId,
           action: 'removed_chore_assignment',
-          details: `Removed "${assignment.chore.name}" from ${assignment.user.nickname}`
+          details: `Removed "${assignment.chore.name}" from ${assignment.user.nickname}`,
+          description: `Chore assignment removed by ${user.nickname} on ${new Date().toLocaleDateString()}`
         }
       });
     } catch (logError) {

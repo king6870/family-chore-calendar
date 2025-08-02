@@ -17,7 +17,8 @@ export async function createActivityLog(data: ActivityLogData) {
           userId: data.userId,
           familyId: data.familyId,
           action: data.action,
-          details: data.details
+          details: data.details,
+          description: data.description
         }
       });
     }
