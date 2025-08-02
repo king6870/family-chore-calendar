@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
 
     // Verify admin permissions
     const adminUser = await prisma.user.findUnique({
-      where: { id: session.user.id },
+      where: { id: user.id },
       include: { family: true }
     });
 
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
       await tx.activityLog.create({
         data: {
           id: `log_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-          userId: session.user.id,
+          userId: user.id,
           familyId: adminUser.familyId!,
           action: 'POINTS_RESET',
           details: `Reset all points for ${targetUser.nickname || targetUser.name}`

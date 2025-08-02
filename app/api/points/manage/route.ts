@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
 
     // Verify admin permissions
     const adminUser = await prisma.user.findUnique({
-      where: { id: session.user.id },
+      where: { id: user.id },
       include: { family: true }
     });
 

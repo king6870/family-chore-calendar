@@ -13,13 +13,13 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId') || session.user.id;
+    const userId = searchParams.get('userId') || user.id;
     const timeframe = searchParams.get('timeframe') || 'week';
     const includeRanking = searchParams.get('includeRanking') === 'true';
 
     // Get user and verify family access
     const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
+      where: { id: user.id },
       include: { family: true }
     });
 
@@ -284,11 +284,11 @@ export async function POST(request: NextRequest) {
 
     // Verify user has access (either the assigned user or an admin in the family)
     const requestingUser = await prisma.user.findUnique({
-      where: { id: session.user.id }
+      where: { id: user.id }
     });
 
     const canAwardPoints = 
-      choreAssignment.userId === session.user.id || // User completing their own chore
+      choreAssignment.userId === user.id || // User completing their own chore
       (requestingUser?.familyId === choreAssignment.familyId && requestingUser?.isAdmin); // Admin in same family
 
     if (!canAwardPoints) {

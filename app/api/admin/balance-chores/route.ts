@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
 
     // Verify admin permissions
     const adminUser = await prisma.user.findUnique({
-      where: { id: session.user.id },
+      where: { id: user.id },
       include: { family: true }
     });
 
@@ -176,7 +176,7 @@ export async function POST(request: NextRequest) {
     await prisma.activityLog.create({
       data: {
         id: `balance_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        userId: session.user.id,
+        userId: user.id,
         familyId: adminUser.familyId,
         action: 'CHORES_BALANCED',
         details: `Balanced chore distribution for week of ${weekStartDate.toLocaleDateString()}`,
@@ -233,7 +233,7 @@ export async function GET(request: NextRequest) {
 
     // Get user and verify family access
     const user = await prisma.user.findUnique({
-      where: { id: session.user.id }
+      where: { id: user.id }
     });
 
     if (!user?.familyId) {

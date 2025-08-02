@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
 
     // Verify admin permissions
     const adminUser = await prisma.user.findUnique({
-      where: { id: session.user.id }
+      where: { id: user.id }
     });
 
     if (!adminUser?.isAdmin || !adminUser.familyId) {
@@ -187,7 +187,7 @@ export async function POST(request: NextRequest) {
     await prisma.activityLog.create({
       data: {
         id: `log_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        userId: session.user.id,
+        userId: user.id,
         familyId: adminUser.familyId,
         action: 'AUCTIONS_FINALIZED',
         details: `Finalized ${results.finalized} auctions for week of ${weekStartDate.toLocaleDateString()}`

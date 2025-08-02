@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
 
     // Get user and verify family access
     const user = await prisma.user.findUnique({
-      where: { id: session.user.id }
+      where: { id: user.id }
     });
 
     if (!user?.familyId) {
