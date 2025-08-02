@@ -113,7 +113,7 @@ export async function PATCH(
           userId: assignment.userId,
           familyId: assignment.familyId,
           action: 'completed_chore',
-          details: `Completed "${assignment.chore.name}" and earned ${assignment.chore.points} points`
+          description: `Completed "${assignment.chore.name}" and earned ${assignment.chore.points} points`
         }
       })
     } else if (!completed && assignment.completed) {
@@ -152,7 +152,7 @@ export async function PATCH(
           userId: assignment.userId,
           familyId: assignment.familyId,
           action: 'uncompleted_chore',
-          details: `Marked "${assignment.chore.name}" as incomplete and removed ${assignment.chore.points} points`
+          description: `Marked "${assignment.chore.name}" as incomplete and removed ${assignment.chore.points} points`
         }
       })
     }
@@ -269,7 +269,7 @@ export async function PUT(
         userId: user.id,
         familyId: user.familyId,
         action: 'moved_chore',
-        details: `Moved "${existingAssignment.chore.name}" to ${targetUser.nickname} for ${dayOfWeek}`
+        description: `Moved "${existingAssignment.chore.name}" to ${targetUser.nickname} for ${dayOfWeek}`
       }
     })
 
@@ -324,7 +324,7 @@ export async function DELETE(
         userId: user.id,
         familyId: user.familyId,
         action: 'removed_chore_assignment',
-        details: `Removed "${assignment.chore.name}" from ${assignment.user.nickname}`
+        description: `Removed "${assignment.chore.name}" from ${assignment.user.nickname}`
       }
     })
 

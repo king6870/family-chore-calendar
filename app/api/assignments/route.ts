@@ -166,7 +166,7 @@ export async function POST(request: NextRequest) {
         userId: user.id,
         familyId: user.familyId,
         action: 'assigned_chore',
-        details: `Assigned "${chore.name}" to ${targetUser.nickname} for ${dayOfWeek}`
+        description: `Assigned "${chore.name}" to ${targetUser.nickname} for ${dayOfWeek}`
       }
     })
 

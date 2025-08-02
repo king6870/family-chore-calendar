@@ -174,12 +174,12 @@ model AuctionBid {
 }
 
 model ActivityLog {
-  id        String   @id @default(cuid())
-  userId    String
-  familyId  String
-  action    String
-  details   String?
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  userId      String
+  familyId    String
+  action      String
+  description String?
+  createdAt   DateTime @default(now())
 
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)

@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
           userId: user.id,
           familyId: adminUser.familyId!,
           action: 'POINTS_RESET',
-          details: `Reset all points for ${targetUser.nickname || targetUser.name}`
+          description: `Reset all points for ${targetUser.nickname || targetUser.name}`
         }
       });
     });
