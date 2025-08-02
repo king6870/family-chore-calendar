@@ -549,14 +549,19 @@ export default function ChoreCalendar({ currentUser }: ChoreCalendarProps) {
             setMessage({ type: 'success', text: 'Chore is already assigned to this user on this date' });
           } else {
             setMessage({ type: 'success', text: 'Chore assigned successfully!' });
+            
+            // Add new assignment to local state if it was actually created
+            if (result.assignment) {
+              setAssignments(prev => [...prev, result.assignment]);
+            }
           }
           
-          await fetchAssignments(); // Wait for assignments to refresh
-          console.log('Assignments after refresh:', assignments.length);
+          setTimeout(() => setMessage(null), 3000);
         } else {
           const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
           console.error('Assignment creation failed:', response.status, errorData);
           setMessage({ type: 'error', text: errorData.error || 'Failed to assign chore' });
+          setTimeout(() => setMessage(null), 3000);
         }
       } else if (draggedAssignment && targetUserId) {
         // Moving existing assignment
@@ -573,17 +578,29 @@ export default function ChoreCalendar({ currentUser }: ChoreCalendarProps) {
         if (response.ok) {
           const result = await response.json();
           console.log('Assignment moved successfully:', result);
+          
+          // Update local state with the moved assignment
+          if (result.assignment) {
+            setAssignments(prev => prev.map(assignment => 
+              assignment.id === draggedAssignment.id 
+                ? { ...assignment, ...result.assignment }
+                : assignment
+            ));
+          }
+          
           setMessage({ type: 'success', text: 'Chore moved successfully!' });
-          await fetchAssignments(); // Wait for assignments to refresh
+          setTimeout(() => setMessage(null), 3000);
         } else {
           const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
           console.error('Assignment move failed:', response.status, errorData);
           setMessage({ type: 'error', text: errorData.error || 'Failed to move chore' });
+          setTimeout(() => setMessage(null), 3000);
         }
       }
     } catch (error) {
       console.error('Network or parsing error:', error);
       setMessage({ type: 'error', text: 'Network error occurred. Please try again.' });
+      setTimeout(() => setMessage(null), 3000);
     }
 
     setDraggedChore(null);
@@ -601,16 +618,22 @@ export default function ChoreCalendar({ currentUser }: ChoreCalendarProps) {
       if (response.ok) {
         const result = await response.json();
         console.log('Assignment deleted successfully:', result);
+        
+        // Update local state by removing the deleted assignment
+        setAssignments(prev => prev.filter(assignment => assignment.id !== assignmentId));
+        
         setMessage({ type: 'success', text: 'Chore assignment removed!' });
-        await fetchAssignments(); // Wait for assignments to refresh
+        setTimeout(() => setMessage(null), 3000);
       } else {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
         console.error('Assignment deletion failed:', response.status, errorData);
         setMessage({ type: 'error', text: errorData.error || 'Failed to remove assignment' });
+        setTimeout(() => setMessage(null), 3000);
       }
     } catch (error) {
       console.error('Network or parsing error during deletion:', error);
       setMessage({ type: 'error', text: 'Network error occurred. Please try again.' });
+      setTimeout(() => setMessage(null), 3000);
     }
   };
 
