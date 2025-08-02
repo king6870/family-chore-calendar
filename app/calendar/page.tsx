@@ -4,7 +4,6 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import ChoreCalendar from '../components/ChoreCalendar';
-import TimezoneSelector from '../components/TimezoneSelector';
 
 interface User {
   id: string;
@@ -12,8 +11,6 @@ interface User {
   nickname: string;
   isAdmin: boolean;
   isOwner: boolean;
-  location?: string;
-  timezone?: string;
 }
 
 export default function CalendarPage() {
@@ -21,7 +18,6 @@ export default function CalendarPage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showTimezoneSelector, setShowTimezoneSelector] = useState(false);
 
   useEffect(() => {
     if (status === 'loading') return;
@@ -40,43 +36,12 @@ export default function CalendarPage() {
       if (response.ok) {
         const userData = await response.json();
         setUser(userData);
-        
-        // Check if user needs to set timezone
-        if (!userData.timezone) {
-          setShowTimezoneSelector(true);
-        }
       }
     } catch (error) {
       console.error('Error fetching user data:', error);
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleTimezoneSelect = async (location: string, timezone: string) => {
-    try {
-      const response = await fetch('/api/user/timezone', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ location, timezone })
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        setUser(prev => prev ? { ...prev, location, timezone } : null);
-        setShowTimezoneSelector(false);
-        console.log('Timezone updated successfully:', result);
-      } else {
-        console.error('Failed to update timezone');
-      }
-    } catch (error) {
-      console.error('Error updating timezone:', error);
-    }
-  };
-
-  const handleSkipTimezone = () => {
-    // Set default to Bothell, Washington for now
-    handleTimezoneSelect('Bothell, Washington, USA', 'America/Los_Angeles');
   };
 
   if (status === 'loading' || loading) {
@@ -93,14 +58,6 @@ export default function CalendarPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Timezone Selector Modal */}
-      {showTimezoneSelector && (
-        <TimezoneSelector
-          onTimezoneSelect={handleTimezoneSelect}
-          onSkip={handleSkipTimezone}
-        />
-      )}
-
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -109,9 +66,6 @@ export default function CalendarPage() {
               <h1 className="text-3xl font-bold text-gray-900">Family Chore Calendar</h1>
               <p className="text-gray-600 mt-1">
                 Manage and track your family's chore assignments
-                {user.location && (
-                  <span className="text-blue-600 ml-2">📍 {user.location}</span>
-                )}
               </p>
             </div>
             <div className="flex items-center space-x-4">

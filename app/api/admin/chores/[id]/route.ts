@@ -59,9 +59,9 @@ export async function PUT(
       data: {
         name: name.trim(),
         description: description?.trim() || null,
-        points: parseInt(points),
+        points: points,
         difficulty,
-        minAge: parseInt(minAge)
+        minAge: minAge
       }
     })
 
