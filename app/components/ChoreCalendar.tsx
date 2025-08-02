@@ -692,6 +692,24 @@ export default function ChoreCalendar({ currentUser }: ChoreCalendarProps) {
           </div>
         )}
 
+      </div>
+
+      {/* Admin Instructions - Moved to top */}
+      {currentUser.isAdmin && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <h4 className="font-semibold text-blue-800 mb-2">📋 Drag & Drop Calendar Instructions:</h4>
+          <ul className="text-sm text-blue-700 space-y-1">
+            <li>• <strong>Grid Layout:</strong> Days across the top, family members down the side</li>
+            <li>• <strong>Assign Chores:</strong> Drag chores from panel below to any member's day cell</li>
+            <li>• <strong>Move Assignments:</strong> Drag existing chores between days or people</li>
+            <li>• <strong>Remove Assignments:</strong> Click the ✕ button on any assignment</li>
+            <li>• <strong>Age Validation:</strong> System prevents assigning age-inappropriate chores</li>
+            <li>• <strong>Visual Overview:</strong> See entire family's week at a glance</li>
+          </ul>
+        </div>
+      )}
+
+      <div className="bg-white rounded-lg shadow-md p-6">
         {/* Available Chores Panel (Admin Only) */}
         {currentUser.isAdmin && (
           <div className="mt-6">
@@ -713,19 +731,6 @@ export default function ChoreCalendar({ currentUser }: ChoreCalendarProps) {
               {availableChores.length === 0 && (
                 <div className="text-gray-500 text-sm">No chores available. Create some chores first!</div>
               )}
-            </div>
-            
-            {/* Admin Instructions - Right after Available Chores */}
-            <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <h4 className="font-semibold text-blue-800 mb-2">📋 Admin Grid Calendar Instructions:</h4>
-              <ul className="text-sm text-blue-700 space-y-1">
-                <li>• <strong>Grid Layout:</strong> Days across the top, family members down the side</li>
-                <li>• <strong>Assign Chores:</strong> Drag chores from panel above to any member's day cell</li>
-                <li>• <strong>Move Assignments:</strong> Drag existing chores between days or people</li>
-                <li>• <strong>Remove Assignments:</strong> Click the ✕ button on any assignment</li>
-                <li>• <strong>Age Validation:</strong> System prevents assigning age-inappropriate chores</li>
-                <li>• <strong>Visual Overview:</strong> See entire family's week at a glance</li>
-              </ul>
             </div>
           </div>
         )}
