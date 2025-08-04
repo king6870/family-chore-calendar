@@ -60,7 +60,7 @@ export default function FamilyManagerEnhanced({
     description: '',
     points: '',
     minAge: '',
-    difficulty: 'medium'
+    difficulty: 'Medium'
   })
   const [editingChore, setEditingChore] = useState<string | null>(null)
 
@@ -615,7 +615,7 @@ export default function FamilyManagerEnhanced({
           description: '',
           points: '',
           minAge: '',
-          difficulty: 'medium'
+          difficulty: 'Medium'
         })
         setEditingChore(null)
         fetchChores()
@@ -830,7 +830,7 @@ function ChoresManagement({
               description: '',
               points: '',
               minAge: '',
-              difficulty: 'medium'
+              difficulty: 'Medium'
             })
             setEditingChore(null)
           }}
@@ -903,9 +903,9 @@ function ChoresManagement({
               className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
             >
-              <option value="easy">Easy (5-10 pts)</option>
-              <option value="medium">Medium (15-20 pts)</option>
-              <option value="hard">Hard (25-40 pts)</option>
+              <option value="Easy">Easy (5-10 pts)</option>
+              <option value="Medium">Medium (15-20 pts)</option>
+              <option value="Hard">Hard (25-40 pts)</option>
             </select>
           </div>
           
@@ -942,7 +942,7 @@ function ChoresManagement({
                     description: '',
                     points: '',
                     minAge: '',
-                    difficulty: 'medium'
+                    difficulty: 'Medium'
                   })
                 }}
                 className="px-6 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
