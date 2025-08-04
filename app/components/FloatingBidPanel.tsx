@@ -17,7 +17,6 @@ interface ChoreAuction {
   id: string;
   weekStart: string;
   status: string;
-  startPoints: number;
   finalPoints: number | null;
   winnerId: string | null;
   createdAt: string;
@@ -35,7 +34,7 @@ interface ChoreAuction {
     name: string;
     nickname: string;
   } | null;
-  ChoreBid?: ChoreBid[];
+  bids?: ChoreBid[];
 }
 
 interface FloatingBidPanelProps {
@@ -50,13 +49,13 @@ export default function FloatingBidPanel({ auctions, currentUserId, isVisible, o
 
   // Get auctions where user has placed bids
   const myBidAuctions = auctions.filter(auction => 
-    auction.ChoreBid && auction.ChoreBid.some(bid => bid.User.id === currentUserId)
+    auction.bids && auction.bids.some(bid => bid.User.id === currentUserId)
   );
 
   // Get auctions where user is currently winning
   const winningAuctions = auctions.filter(auction => {
-    if (!auction.ChoreBid || auction.ChoreBid.length === 0) return false;
-    const lowestBid = auction.ChoreBid.reduce((lowest, bid) => 
+    if (!auction.bids || auction.bids.length === 0) return false;
+    const lowestBid = auction.bids.reduce((lowest, bid) => 
       !lowest || bid.bidPoints < lowest.bidPoints ? bid : lowest, 
       null as ChoreBid | null
     );
@@ -65,16 +64,16 @@ export default function FloatingBidPanel({ auctions, currentUserId, isVisible, o
 
   // Get user's bid for a specific auction
   const getUserBid = (auction: ChoreAuction) => {
-    if (!auction.ChoreBid) return null;
-    return auction.ChoreBid
+    if (!auction.bids) return null;
+    return auction.bids
       .filter(bid => bid.User.id === currentUserId)
       .sort((a, b) => a.bidPoints - b.bidPoints)[0]; // Get lowest bid from user
   };
 
   // Check if user is winning an auction
   const isUserWinning = (auction: ChoreAuction) => {
-    if (!auction.ChoreBid || auction.ChoreBid.length === 0) return false;
-    const lowestBid = auction.ChoreBid.reduce((lowest, bid) => 
+    if (!auction.bids || auction.bids.length === 0) return false;
+    const lowestBid = auction.bids.reduce((lowest, bid) => 
       !lowest || bid.bidPoints < lowest.bidPoints ? bid : lowest, 
       null as ChoreBid | null
     );
@@ -83,8 +82,8 @@ export default function FloatingBidPanel({ auctions, currentUserId, isVisible, o
 
   // Get the current lowest bid for an auction
   const getLowestBid = (auction: ChoreAuction) => {
-    if (!auction.ChoreBid || auction.ChoreBid.length === 0) return null;
-    return auction.ChoreBid.reduce((lowest, bid) => 
+    if (!auction.bids || auction.bids.length === 0) return null;
+    return auction.bids.reduce((lowest, bid) => 
       !lowest || bid.bidPoints < lowest.bidPoints ? bid : lowest, 
       null as ChoreBid | null
     );
@@ -236,9 +235,9 @@ export default function FloatingBidPanel({ auctions, currentUserId, isVisible, o
                     </div>
                     <div className="space-y-1 text-xs text-gray-600">
                       <div>Your winning bid: <span className="font-medium text-green-600">{userBid?.bidPoints} pts</span></div>
-                      <div>Original points: <span className="font-medium">{auction.startPoints} pts</span></div>
+                      <div>Original points: <span className="font-medium">{auction.Chore.points} pts</span></div>
                       <div>Time left: <span className="font-medium">{formatTimeRemaining(auction.endTime)}</span></div>
-                      <div className="text-green-600 font-medium">💰 You'll save {auction.startPoints - (userBid?.bidPoints || 0)} points!</div>
+                      <div className="text-green-600 font-medium">💰 You'll save {auction.Chore.points - (userBid?.bidPoints || 0)} points!</div>
                     </div>
                   </div>
                 );
@@ -274,7 +273,7 @@ export default function FloatingBidPanel({ auctions, currentUserId, isVisible, o
                       </span>
                     </div>
                     <div className="space-y-1 text-xs text-gray-600">
-                      <div>Current lowest: <span className="font-medium">{lowestBid?.bidPoints || auction.startPoints} pts</span></div>
+                      <div>Current lowest: <span className="font-medium">{lowestBid?.bidPoints || auction.Chore.points} pts</span></div>
                       {userBid && (
                         <div>Your bid: <span className={`font-medium ${isWinning ? 'text-green-600' : 'text-blue-600'}`}>
                           {userBid.bidPoints} pts {isWinning && '🏆'}

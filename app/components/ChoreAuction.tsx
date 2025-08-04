@@ -20,7 +20,6 @@ interface ChoreAuction {
   id: string;
   weekStart: string;
   status: string;
-  startPoints: number;
   finalPoints: number | null;
   winnerId: string | null;
   createdAt: string;
@@ -38,7 +37,7 @@ interface ChoreAuction {
     name: string;
     nickname: string;
   } | null;
-  ChoreBid?: ChoreBid[];
+  bids?: ChoreBid[];
 }
 
 interface User {
@@ -341,7 +340,7 @@ export default function ChoreAuction({ currentUser }: ChoreAuctionProps) {
   };
 
   const getLowestBid = (auction: ChoreAuction): ChoreBid | null => {
-    return auction.ChoreBid && auction.ChoreBid.length > 0 ? auction.ChoreBid[0] : null;
+    return auction.bids && auction.bids.length > 0 ? auction.bids[0] : null;
   };
 
   const isUserWinning = (auction: ChoreAuction): boolean => {
@@ -507,7 +506,7 @@ export default function ChoreAuction({ currentUser }: ChoreAuctionProps) {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                       <div>
                         <div className="text-sm text-gray-600">Starting Points</div>
-                        <div className="text-lg font-semibold text-gray-800">{auction.startPoints}</div>
+                        <div className="text-lg font-semibold text-gray-800">{auction.Chore.points}</div>
                       </div>
                       
                       <div>
@@ -537,11 +536,11 @@ export default function ChoreAuction({ currentUser }: ChoreAuctionProps) {
                     </div>
 
                     {/* Current Bids */}
-                    {auction.ChoreBid && auction.ChoreBid.length > 0 && (
+                    {auction.bids && auction.bids.length > 0 && (
                       <div className="mb-4">
-                        <h4 className="font-medium text-gray-800 mb-2">Current Bids ({auction.ChoreBid.length})</h4>
+                        <h4 className="font-medium text-gray-800 mb-2">Current Bids ({auction.bids.length})</h4>
                         <div className="space-y-1">
-                          {auction.ChoreBid.slice(0, 3).map((bid, index) => (
+                          {auction.bids.slice(0, 3).map((bid, index) => (
                             <div key={bid.id} className={`flex justify-between items-center p-2 rounded ${
                               bid.User.id === currentUser.id ? 'bg-blue-50 border border-blue-200' : 'bg-gray-50'
                             }`}>
@@ -553,9 +552,9 @@ export default function ChoreAuction({ currentUser }: ChoreAuctionProps) {
                               <span className="font-semibold text-green-600">{bid.bidPoints}pts</span>
                             </div>
                           ))}
-                          {auction.ChoreBid && auction.ChoreBid.length > 3 && (
+                          {auction.bids && auction.bids.length > 3 && (
                             <div className="text-sm text-gray-500 text-center">
-                              +{auction.ChoreBid.length - 3} more bids
+                              +{auction.bids.length - 3} more bids
                             </div>
                           )}
                         </div>
