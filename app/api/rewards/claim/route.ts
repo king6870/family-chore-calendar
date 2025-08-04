@@ -3,8 +3,8 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '../../../../lib/auth';
 import { prisma } from '../../../../lib/prisma';
 
-// Environment check - only allow in local and preview
-const isRewardsEnabled = process.env.NODE_ENV === 'development' || process.env.VERCEL_ENV === 'preview';
+// Environment check - enable rewards in all environments
+const isRewardsEnabled = true;
 
 // GET - Fetch user's reward claims
 export async function GET(request: NextRequest) {
