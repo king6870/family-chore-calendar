@@ -48,6 +48,20 @@ export async function PATCH(
       return NextResponse.json({ error: 'Permission denied' }, { status: 403 })
     }
 
+    // Prevent marking completed chores as incomplete (one-time redemption rule)
+    if (assignment.completed && !completed) {
+      return NextResponse.json({ 
+        error: 'Cannot mark completed chores as incomplete. Each chore can only be redeemed once.' 
+      }, { status: 400 })
+    }
+
+    // Prevent completing already completed chores
+    if (assignment.completed && completed) {
+      return NextResponse.json({ 
+        error: 'This chore has already been completed and redeemed.' 
+      }, { status: 400 })
+    }
+
     // Update the assignment
     const updatedAssignment = await prisma.choreAssignment.update({
       where: { id: assignmentId },
@@ -75,8 +89,8 @@ export async function PATCH(
       }
     })
 
-    // If marking as completed, award points
-    if (completed && !assignment.completed) {
+    // If marking as completed, award points (only possible if not already completed)
+    if (completed) {
       // Get the week start for this assignment
       const assignmentDate = new Date(assignment.date)
       const weekStart = new Date(assignmentDate)
@@ -115,49 +129,6 @@ export async function PATCH(
             familyId: assignment.familyId,
             action: 'completed_chore',
             details: `Completed "${assignment.chore.name}" and earned ${assignment.chore.points} points. Chore completed by ${assignment.user.nickname} on ${new Date().toLocaleDateString()}`
-          }
-        });
-      } catch (logError) {
-        console.error('Failed to create activity log:', logError);
-      }
-    } else if (!completed && assignment.completed) {
-      // If marking as incomplete, remove points
-      // Find and delete the points record
-      const pointsRecord = await prisma.pointsEarned.findFirst({
-        where: {
-          userId: assignment.userId,
-          choreId: assignment.choreId,
-          date: {
-            gte: new Date(assignment.completedAt || assignment.date),
-            lt: new Date(new Date(assignment.completedAt || assignment.date).getTime() + 24 * 60 * 60 * 1000)
-          }
-        }
-      })
-
-      if (pointsRecord) {
-        await prisma.pointsEarned.delete({
-          where: { id: pointsRecord.id }
-        })
-
-        // Update user's total points
-        await prisma.user.update({
-          where: { id: assignment.userId },
-          data: {
-            totalPoints: {
-              decrement: assignment.chore.points
-            }
-          }
-        })
-      }
-
-      // Log the activity (non-blocking)
-      try {
-        await prisma.activityLog.create({
-          data: {
-            userId: assignment.userId,
-            familyId: assignment.familyId,
-            action: 'uncompleted_chore',
-            details: `Marked "${assignment.chore.name}" as incomplete and removed ${assignment.chore.points} points. Chore marked as incomplete by ${assignment.user.nickname} on ${new Date().toLocaleDateString()}`
           }
         });
       } catch (logError) {

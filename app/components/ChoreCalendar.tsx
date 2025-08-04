@@ -167,6 +167,16 @@ export default function ChoreCalendar({ currentUser }: ChoreCalendarProps) {
   };
 
   const handleChoreToggle = async (assignmentId: string, completed: boolean) => {
+    // Only allow marking as complete, not incomplete
+    if (!completed) {
+      setMessage({
+        type: 'error',
+        text: 'Cannot mark completed chores as incomplete. Each chore can only be redeemed once.'
+      });
+      setTimeout(() => setMessage(null), 3000);
+      return;
+    }
+
     try {
       const response = await fetch(`/api/assignments/${assignmentId}`, {
         method: 'PATCH',
@@ -176,41 +186,29 @@ export default function ChoreCalendar({ currentUser }: ChoreCalendarProps) {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Chore toggle successful:', data);
+        console.log('Chore completion successful:', data);
         
         // Update local state
         setAssignments(prev => prev.map(assignment => 
           assignment.id === assignmentId 
-            ? { ...assignment, completed, completedAt: completed ? new Date().toISOString() : null }
+            ? { ...assignment, completed: true, completedAt: new Date().toISOString() }
             : assignment
         ));
 
         // Show success message with points info
-        if (completed && data.pointsUpdate?.pointsAwarded) {
-          setMessage({
-            type: 'success',
-            text: `🎉 Chore completed! You earned ${data.pointsUpdate.chorePoints} points!`
-          });
-        } else if (!completed && data.pointsUpdate?.pointsRemoved) {
-          setMessage({
-            type: 'success',
-            text: `Chore unmarked. Points have been adjusted.`
-          });
-        } else {
-          setMessage({
-            type: 'success',
-            text: completed ? 'Chore marked as completed!' : 'Chore marked as incomplete.'
-          });
-        }
+        setMessage({
+          type: 'success',
+          text: `🎉 Chore completed and redeemed! You earned ${data.assignment?.chore?.points || 'some'} points!`
+        });
 
         // Clear message after 3 seconds
         setTimeout(() => setMessage(null), 3000);
       } else {
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
-        console.error('Chore toggle failed:', response.status, errorData);
+        console.error('Chore completion failed:', response.status, errorData);
         setMessage({
           type: 'error',
-          text: errorData.error || 'Failed to update chore status'
+          text: errorData.error || 'Failed to complete chore'
         });
         setTimeout(() => setMessage(null), 3000);
       }
@@ -882,17 +880,22 @@ export default function ChoreCalendar({ currentUser }: ChoreCalendarProps) {
                                   </div>
                                 )}
 
-                                {/* Toggle Button */}
-                                <button
-                                  onClick={() => handleChoreToggle(assignment.id, !assignment.completed)}
-                                  className={`w-full py-1 px-1 rounded text-xs font-medium transition-colors mt-1 ${
-                                    assignment.completed
-                                      ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
-                                      : 'bg-green-100 text-green-800 hover:bg-green-200'
-                                  }`}
-                                >
-                                  {assignment.completed ? '↶' : '✓'}
-                                </button>
+                                {/* Toggle Button - Only show for incomplete chores */}
+                                {!assignment.completed && (
+                                  <button
+                                    onClick={() => handleChoreToggle(assignment.id, true)}
+                                    className="w-full py-1 px-1 rounded text-xs font-medium transition-colors mt-1 bg-green-100 text-green-800 hover:bg-green-200"
+                                  >
+                                    ✓
+                                  </button>
+                                )}
+                                
+                                {/* Completed indicator */}
+                                {assignment.completed && (
+                                  <div className="w-full py-1 px-1 rounded text-xs font-medium mt-1 bg-green-200 text-green-800 text-center">
+                                    ✓ Redeemed
+                                  </div>
+                                )}
                               </div>
                             ))
                           )}
@@ -981,18 +984,21 @@ export default function ChoreCalendar({ currentUser }: ChoreCalendarProps) {
                               </div>
                             )}
 
-                            {/* Action Button */}
-                            {canToggle && (
+                            {/* Action Button - Only show for incomplete chores */}
+                            {canToggle && !assignment.completed && (
                               <button
-                                onClick={() => handleChoreToggle(assignment.id, !assignment.completed)}
-                                className={`w-full py-1 px-2 rounded text-xs font-medium transition-colors ${
-                                  assignment.completed
-                                    ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
-                                    : 'bg-green-100 text-green-800 hover:bg-green-200'
-                                }`}
+                                onClick={() => handleChoreToggle(assignment.id, true)}
+                                className="w-full py-1 px-2 rounded text-xs font-medium transition-colors bg-green-100 text-green-800 hover:bg-green-200"
                               >
-                                {assignment.completed ? '↶ Mark Incomplete' : '✓ Mark Complete'}
+                                ✓ Mark Complete
                               </button>
+                            )}
+                            
+                            {/* Completed status */}
+                            {assignment.completed && (
+                              <div className="w-full py-1 px-2 rounded text-xs font-medium bg-green-200 text-green-800 text-center">
+                                ✓ Completed & Redeemed
+                              </div>
                             )}
 
                             {/* Completion Status */}
