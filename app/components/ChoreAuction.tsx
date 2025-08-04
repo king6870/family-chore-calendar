@@ -24,7 +24,7 @@ interface ChoreAuction {
   finalPoints: number | null;
   winnerId: string | null;
   createdAt: string;
-  endsAt: string;
+  endTime: string;
   Chore: {
     id: string;
     name: string;
@@ -300,8 +300,15 @@ export default function ChoreAuction({ currentUser }: ChoreAuctionProps) {
   };
 
   const getTimeRemaining = (endsAt: string): string => {
+    // Validate input
+    if (!endsAt) return 'Invalid date';
+    
     const now = new Date();
     const end = new Date(endsAt);
+    
+    // Check if the date is valid
+    if (isNaN(end.getTime())) return 'Invalid date';
+    
     const diff = end.getTime() - now.getTime();
     
     if (diff <= 0) return 'Ended';
@@ -326,7 +333,7 @@ export default function ChoreAuction({ currentUser }: ChoreAuctionProps) {
     }
     
     // Check if auction is active and not ended
-    if (auction.status !== 'active' || new Date() > new Date(auction.endsAt)) {
+    if (auction.status !== 'active' || new Date() > new Date(auction.endTime)) {
       return false;
     }
     
@@ -470,8 +477,8 @@ export default function ChoreAuction({ currentUser }: ChoreAuctionProps) {
             const lowestBid = getLowestBid(auction);
             const canBid = canBidOnChore(auction);
             const isWinning = isUserWinning(auction);
-            const timeRemaining = getTimeRemaining(auction.endsAt);
-            const hasEnded = new Date() > new Date(auction.endsAt);
+            const timeRemaining = getTimeRemaining(auction.endTime);
+            const hasEnded = new Date() > new Date(auction.endTime);
             
             return (
               <div key={auction.id} className="bg-white rounded-lg shadow-md p-6">

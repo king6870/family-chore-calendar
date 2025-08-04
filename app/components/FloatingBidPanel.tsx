@@ -21,7 +21,7 @@ interface ChoreAuction {
   finalPoints: number | null;
   winnerId: string | null;
   createdAt: string;
-  endsAt: string;
+  endTime: string;
   Chore: {
     id: string;
     name: string;
@@ -90,9 +90,9 @@ export default function FloatingBidPanel({ auctions, currentUserId, isVisible, o
     );
   };
 
-  const formatTimeRemaining = (endsAt: string) => {
+  const formatTimeRemaining = (endTime: string) => {
     const now = new Date();
-    const end = new Date(endsAt);
+    const end = new Date(endTime);
     const diff = end.getTime() - now.getTime();
     
     if (diff <= 0) return 'Ended';
@@ -205,7 +205,7 @@ export default function FloatingBidPanel({ auctions, currentUserId, isVisible, o
                     <div className="space-y-1 text-xs text-gray-600">
                       <div>Your bid: <span className="font-medium text-blue-600">{userBid?.bidPoints} pts</span></div>
                       <div>Current lowest: <span className="font-medium">{lowestBid?.bidPoints} pts</span></div>
-                      <div>Time left: <span className="font-medium">{formatTimeRemaining(auction.endsAt)}</span></div>
+                      <div>Time left: <span className="font-medium">{formatTimeRemaining(auction.endTime)}</span></div>
                     </div>
                   </div>
                 );
@@ -237,7 +237,7 @@ export default function FloatingBidPanel({ auctions, currentUserId, isVisible, o
                     <div className="space-y-1 text-xs text-gray-600">
                       <div>Your winning bid: <span className="font-medium text-green-600">{userBid?.bidPoints} pts</span></div>
                       <div>Original points: <span className="font-medium">{auction.startPoints} pts</span></div>
-                      <div>Time left: <span className="font-medium">{formatTimeRemaining(auction.endsAt)}</span></div>
+                      <div>Time left: <span className="font-medium">{formatTimeRemaining(auction.endTime)}</span></div>
                       <div className="text-green-600 font-medium">💰 You'll save {auction.startPoints - (userBid?.bidPoints || 0)} points!</div>
                     </div>
                   </div>
@@ -280,7 +280,7 @@ export default function FloatingBidPanel({ auctions, currentUserId, isVisible, o
                           {userBid.bidPoints} pts {isWinning && '🏆'}
                         </span></div>
                       )}
-                      <div>Time left: <span className="font-medium">{formatTimeRemaining(auction.endsAt)}</span></div>
+                      <div>Time left: <span className="font-medium">{formatTimeRemaining(auction.endTime)}</span></div>
                     </div>
                   </div>
                 );
