@@ -6,7 +6,7 @@ interface ChoreBid {
   id: string;
   bidPoints: number;
   createdAt: string;
-  User: {
+  user: {
     id: string;
     name: string;
     nickname: string;
@@ -49,7 +49,7 @@ export default function FloatingBidPanel({ auctions, currentUserId, isVisible, o
 
   // Get auctions where user has placed bids
   const myBidAuctions = auctions.filter(auction => 
-    auction.bids && auction.bids.some(bid => bid.User.id === currentUserId)
+    auction.bids && auction.bids.some(bid => bid.user.id === currentUserId)
   );
 
   // Get auctions where user is currently winning
@@ -59,14 +59,14 @@ export default function FloatingBidPanel({ auctions, currentUserId, isVisible, o
       !lowest || bid.bidPoints < lowest.bidPoints ? bid : lowest, 
       null as ChoreBid | null
     );
-    return lowestBid?.User.id === currentUserId;
+    return lowestBid?.user.id === currentUserId;
   });
 
   // Get user's bid for a specific auction
   const getUserBid = (auction: ChoreAuction) => {
     if (!auction.bids) return null;
     return auction.bids
-      .filter(bid => bid.User.id === currentUserId)
+      .filter(bid => bid.user.id === currentUserId)
       .sort((a, b) => a.bidPoints - b.bidPoints)[0]; // Get lowest bid from user
   };
 
@@ -77,7 +77,7 @@ export default function FloatingBidPanel({ auctions, currentUserId, isVisible, o
       !lowest || bid.bidPoints < lowest.bidPoints ? bid : lowest, 
       null as ChoreBid | null
     );
-    return lowestBid?.User.id === currentUserId;
+    return lowestBid?.user.id === currentUserId;
   };
 
   // Get the current lowest bid for an auction

@@ -9,7 +9,7 @@ interface ChoreBid {
   id: string;
   bidPoints: number;
   createdAt: string;
-  User: {
+  user: {
     id: string;
     name: string;
     nickname: string;
@@ -345,7 +345,7 @@ export default function ChoreAuction({ currentUser }: ChoreAuctionProps) {
 
   const isUserWinning = (auction: ChoreAuction): boolean => {
     const lowestBid = getLowestBid(auction);
-    return lowestBid?.User.id === currentUser.id;
+    return lowestBid?.user.id === currentUser.id;
   };
 
   return (
@@ -542,12 +542,12 @@ export default function ChoreAuction({ currentUser }: ChoreAuctionProps) {
                         <div className="space-y-1">
                           {auction.bids.slice(0, 3).map((bid, index) => (
                             <div key={bid.id} className={`flex justify-between items-center p-2 rounded ${
-                              bid.User.id === currentUser.id ? 'bg-blue-50 border border-blue-200' : 'bg-gray-50'
+                              bid.user.id === currentUser.id ? 'bg-blue-50 border border-blue-200' : 'bg-gray-50'
                             }`}>
                               <span className="font-medium">
                                 {index === 0 && '🥇 '}
-                                {bid.User.nickname || bid.User.name}
-                                {bid.User.id === currentUser.id && ' (You)'}
+                                {bid.user.nickname || bid.user.name}
+                                {bid.user.id === currentUser.id && ' (You)'}
                               </span>
                               <span className="font-semibold text-green-600">{bid.bidPoints}pts</span>
                             </div>
