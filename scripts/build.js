@@ -36,6 +36,18 @@ try {
   console.log('📦 Generating Prisma client...');
   execSync('npx prisma generate', { stdio: 'inherit' });
   
+  // Push database schema in production
+  if (isProduction && process.env.DATABASE_URL) {
+    console.log('🗄️ Pushing database schema to production...');
+    try {
+      execSync('npx prisma db push --accept-data-loss', { stdio: 'inherit' });
+      console.log('✅ Database schema updated successfully');
+    } catch (error) {
+      console.warn('⚠️ Database push failed, continuing with build...');
+      console.warn('Note: You may need to manually run database migrations');
+    }
+  }
+  
   // Build Next.js
   console.log('🏗️ Building Next.js application...');
   execSync('npx next build', { stdio: 'inherit' });
