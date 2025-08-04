@@ -624,14 +624,14 @@ export default function ChoreAuction({ currentUser }: ChoreAuctionProps) {
                               <input
                                 type="number"
                                 min="1"
-                                max={lowestBid ? lowestBid.bidPoints - 1 : auction.startPoints}
+                                max={lowestBid ? lowestBid.bidPoints - 1 : auction.Chore.points}
                                 value={bidAmounts[auction.id] || ''}
                                 onChange={(e) => setBidAmounts(prev => ({
                                   ...prev,
                                   [auction.id]: parseInt(e.target.value) || 0
                                 }))}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                placeholder={`Max: ${lowestBid ? lowestBid.bidPoints - 1 : auction.startPoints}`}
+                                placeholder={`Max: ${lowestBid ? lowestBid.bidPoints - 1 : auction.Chore.points}`}
                               />
                             </div>
                             
