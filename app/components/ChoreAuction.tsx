@@ -38,7 +38,7 @@ interface ChoreAuction {
     name: string;
     nickname: string;
   } | null;
-  ChoreBid: ChoreBid[];
+  ChoreBid?: ChoreBid[];
 }
 
 interface User {
@@ -334,7 +334,7 @@ export default function ChoreAuction({ currentUser }: ChoreAuctionProps) {
   };
 
   const getLowestBid = (auction: ChoreAuction): ChoreBid | null => {
-    return auction.ChoreBid.length > 0 ? auction.ChoreBid[0] : null;
+    return auction.ChoreBid && auction.ChoreBid.length > 0 ? auction.ChoreBid[0] : null;
   };
 
   const isUserWinning = (auction: ChoreAuction): boolean => {
@@ -530,7 +530,7 @@ export default function ChoreAuction({ currentUser }: ChoreAuctionProps) {
                     </div>
 
                     {/* Current Bids */}
-                    {auction.ChoreBid.length > 0 && (
+                    {auction.ChoreBid && auction.ChoreBid.length > 0 && (
                       <div className="mb-4">
                         <h4 className="font-medium text-gray-800 mb-2">Current Bids ({auction.ChoreBid.length})</h4>
                         <div className="space-y-1">
@@ -546,7 +546,7 @@ export default function ChoreAuction({ currentUser }: ChoreAuctionProps) {
                               <span className="font-semibold text-green-600">{bid.bidPoints}pts</span>
                             </div>
                           ))}
-                          {auction.ChoreBid.length > 3 && (
+                          {auction.ChoreBid && auction.ChoreBid.length > 3 && (
                             <div className="text-sm text-gray-500 text-center">
                               +{auction.ChoreBid.length - 3} more bids
                             </div>
