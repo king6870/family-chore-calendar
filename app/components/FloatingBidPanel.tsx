@@ -35,7 +35,7 @@ interface ChoreAuction {
     name: string;
     nickname: string;
   } | null;
-  ChoreBid: ChoreBid[];
+  ChoreBid?: ChoreBid[];
 }
 
 interface FloatingBidPanelProps {
@@ -50,11 +50,12 @@ export default function FloatingBidPanel({ auctions, currentUserId, isVisible, o
 
   // Get auctions where user has placed bids
   const myBidAuctions = auctions.filter(auction => 
-    auction.ChoreBid.some(bid => bid.User.id === currentUserId)
+    auction.ChoreBid && auction.ChoreBid.some(bid => bid.User.id === currentUserId)
   );
 
   // Get auctions where user is currently winning
   const winningAuctions = auctions.filter(auction => {
+    if (!auction.ChoreBid || auction.ChoreBid.length === 0) return false;
     const lowestBid = auction.ChoreBid.reduce((lowest, bid) => 
       !lowest || bid.bidPoints < lowest.bidPoints ? bid : lowest, 
       null as ChoreBid | null
@@ -64,6 +65,7 @@ export default function FloatingBidPanel({ auctions, currentUserId, isVisible, o
 
   // Get user's bid for a specific auction
   const getUserBid = (auction: ChoreAuction) => {
+    if (!auction.ChoreBid) return null;
     return auction.ChoreBid
       .filter(bid => bid.User.id === currentUserId)
       .sort((a, b) => a.bidPoints - b.bidPoints)[0]; // Get lowest bid from user
@@ -71,6 +73,7 @@ export default function FloatingBidPanel({ auctions, currentUserId, isVisible, o
 
   // Check if user is winning an auction
   const isUserWinning = (auction: ChoreAuction) => {
+    if (!auction.ChoreBid || auction.ChoreBid.length === 0) return false;
     const lowestBid = auction.ChoreBid.reduce((lowest, bid) => 
       !lowest || bid.bidPoints < lowest.bidPoints ? bid : lowest, 
       null as ChoreBid | null
@@ -80,6 +83,7 @@ export default function FloatingBidPanel({ auctions, currentUserId, isVisible, o
 
   // Get the current lowest bid for an auction
   const getLowestBid = (auction: ChoreAuction) => {
+    if (!auction.ChoreBid || auction.ChoreBid.length === 0) return null;
     return auction.ChoreBid.reduce((lowest, bid) => 
       !lowest || bid.bidPoints < lowest.bidPoints ? bid : lowest, 
       null as ChoreBid | null
