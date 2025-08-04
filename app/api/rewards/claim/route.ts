@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No family found' }, { status: 400 });
     }
 
-    const { rewardId, notes } = await request.json();
+    const { rewardId } = await request.json();
 
     if (!rewardId) {
       return NextResponse.json({ error: 'Reward ID required' }, { status: 400 });
@@ -115,8 +115,7 @@ export async function POST(request: NextRequest) {
           rewardId,
           userId: user.id,
           familyId: user.familyId!, // Non-null assertion since we checked above
-          pointsSpent: reward.pointsRequired,
-          notes: notes?.trim() || null
+          pointsSpent: reward.pointsRequired
         },
         include: {
           reward: true
