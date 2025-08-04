@@ -639,6 +639,9 @@ export default function FamilyManagerEnhanced({
       difficulty: chore.difficulty
     })
     setEditingChore(chore.id)
+    
+    // Scroll to top of page to show the edit form
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   async function handleChoreDelete(choreId: string) {
