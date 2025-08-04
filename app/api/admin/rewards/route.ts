@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     }
 
     const rewards = await prisma.reward.findMany({
-      where: { familyId: user.familyId },
+      where: { familyId: user.familyId! },
       include: {
         creator: { select: { name: true, nickname: true } },
         claims: {
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
         pointsRequired: parseInt(pointsRequired),
         category: category || 'general',
         imageUrl: imageUrl?.trim() || null,
-        familyId: user.familyId,
+        familyId: user.familyId!,
         creatorId: user.id
       },
       include: {
@@ -128,7 +128,7 @@ export async function PUT(request: NextRequest) {
     const reward = await prisma.reward.update({
       where: { 
         id,
-        familyId: user.familyId // Ensure user can only update their family's rewards
+        familyId: user.familyId! // Ensure user can only update their family's rewards
       },
       data: {
         title: title?.trim(),
@@ -184,7 +184,7 @@ export async function DELETE(request: NextRequest) {
     await prisma.reward.delete({
       where: { 
         id: rewardId,
-        familyId: user.familyId // Ensure user can only delete their family's rewards
+        familyId: user.familyId! // Ensure user can only delete their family's rewards
       }
     });
 

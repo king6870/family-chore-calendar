@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
     const reward = await prisma.reward.findFirst({
       where: { 
         id: rewardId,
-        familyId: user.familyId,
+        familyId: user.familyId!,
         isActive: true
       }
     });
@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
         data: {
           rewardId,
           userId: user.id,
-          familyId: user.familyId,
+          familyId: user.familyId!, // Non-null assertion since we checked above
           pointsSpent: reward.pointsRequired,
           notes: notes?.trim() || null
         },
