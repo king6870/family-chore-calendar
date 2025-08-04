@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'No family found' }, { status: 400 });
     }
 
-    const rewards = await (prisma as any).reward?.findMany({
+    const rewards = await prisma.reward.findMany({
       where: { familyId: user.familyId },
       include: {
         creator: { select: { name: true, nickname: true } },
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
         }
       },
       orderBy: { createdAt: 'desc' }
-    }) || [];
+    });
 
     return NextResponse.json({ rewards });
   } catch (error) {
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Title and valid points required' }, { status: 400 });
     }
 
-    const reward = await (prisma as any).reward?.create({
+    const reward = await prisma.reward.create({
       data: {
         title: title.trim(),
         description: description?.trim() || null,
@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
         category: category || 'general',
         imageUrl: imageUrl?.trim() || null,
         familyId: user.familyId,
-        createdBy: user.id
+        creatorId: user.id
       },
       include: {
         creator: { select: { name: true, nickname: true } }
@@ -125,7 +125,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Reward ID required' }, { status: 400 });
     }
 
-    const reward = await (prisma as any).reward?.update({
+    const reward = await prisma.reward.update({
       where: { 
         id,
         familyId: user.familyId // Ensure user can only update their family's rewards
@@ -181,7 +181,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Reward ID required' }, { status: 400 });
     }
 
-    await (prisma as any).reward?.delete({
+    await prisma.reward.delete({
       where: { 
         id: rewardId,
         familyId: user.familyId // Ensure user can only delete their family's rewards

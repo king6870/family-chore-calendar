@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'No family found' }, { status: 400 });
     }
 
-    const claims = await (prisma as any).rewardClaim?.findMany({
+    const claims = await prisma.rewardClaim.findMany({
       where: { userId: user.id },
       include: {
         reward: true,
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if reward exists and is active
-    const reward = await (prisma as any).reward?.findFirst({
+    const reward = await prisma.reward.findFirst({
       where: { 
         id: rewardId,
         familyId: user.familyId,
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user already has a pending claim for this reward
-    const existingClaim = await (prisma as any).rewardClaim?.findFirst({
+    const existingClaim = await prisma.rewardClaim.findFirst({
       where: {
         rewardId,
         userId: user.id,
@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
       });
 
       // Create the claim
-      const newClaim = await (tx as any).rewardClaim?.create({
+      const newClaim = await tx.rewardClaim.create({
         data: {
           rewardId,
           userId: user.id,
