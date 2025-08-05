@@ -119,6 +119,7 @@ model ChoreAssignment {
   dayOfWeek   String
   completed   Boolean   @default(false)
   completedAt DateTime?
+  bidPoints   Int?      // Points from auction bid (if assignment came from auction)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
