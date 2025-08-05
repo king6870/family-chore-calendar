@@ -8,8 +8,11 @@ import AdminPanel from './components/AdminPanel'
 import PointsTracker from './components/PointsTracker'
 import PointsDisplay from './components/PointsDisplay'
 import ChoreCalendar from './components/ChoreCalendar'
-import ChoreAuction from './components/ChoreAuction'
+// import ChoreAuction from './components/ChoreAuction' // Hidden for later implementation
 import RewardStore from './components/RewardStore'
+
+// Feature flags
+const ENABLE_AUCTIONS = false // Set to true to re-enable auction system
 
 interface User {
   id: string
@@ -180,7 +183,7 @@ export default function Home() {
                   { id: 'calendar', label: '📅 Calendar', icon: '📅' },
                   { id: 'points', label: '⭐ Points', icon: '⭐' },
                   { id: 'rewards', label: '🎁 Rewards', icon: '🎁' },
-                  { id: 'auctions', label: '🏛️ Auctions', icon: '🏛️' },
+                  ...(ENABLE_AUCTIONS ? [{ id: 'auctions', label: '🏛️ Auctions', icon: '🏛️' }] : []),
                   { id: 'family', label: '👥 Family', icon: '👥' },
                   ...(user.isAdmin ? [{ id: 'admin', label: '🛠️ Admin', icon: '🛠️' }] : [])
                 ].map((tab) => (
@@ -351,18 +354,20 @@ export default function Home() {
             <RewardStore />
           )}
 
-          {/* Auctions Section */}
-          {activeSection === 'auctions' && (
-            <ChoreAuction currentUser={{
-              id: user.id,
-              name: user.name,
-              nickname: user.nickname,
-              age: user.age,
-              isAdmin: user.isAdmin,
-              isOwner: user.isOwner,
-              totalPoints: user.totalPoints,
-              email: user.email
-            }} />
+          {/* Auctions Section - Hidden for later implementation */}
+          {ENABLE_AUCTIONS && activeSection === 'auctions' && (
+            <div>Auction system will be implemented here</div>
+            // Uncomment below when ready to implement:
+            // <ChoreAuction currentUser={{
+            //   id: user.id,
+            //   name: user.name,
+            //   nickname: user.nickname,
+            //   age: user.age,
+            //   isAdmin: user.isAdmin,
+            //   isOwner: user.isOwner,
+            //   totalPoints: user.totalPoints,
+            //   email: user.email
+            // }} />
           )}
 
           {/* Family Section - Enhanced for Local Development */}
