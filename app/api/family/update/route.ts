@@ -19,8 +19,8 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'User not in a family' }, { status: 400 })
     }
 
-    if (!user.isAdmin && !user.isOwner) {
-      return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
+    if (!user.isOwner) {
+      return NextResponse.json({ error: 'Owner access required' }, { status: 403 })
     }
 
     const { familyName, location, timezone } = await request.json()

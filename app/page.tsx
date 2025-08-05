@@ -236,7 +236,7 @@ export default function Home() {
           )}
 
           {/* Timezone Notification for families without timezone */}
-          {!family.timezone && (user.isAdmin || user.isOwner) && (
+          {!family.timezone && user.isOwner && (
             <TimezoneNotification onTimezoneUpdated={fetchUserData} />
           )}
 

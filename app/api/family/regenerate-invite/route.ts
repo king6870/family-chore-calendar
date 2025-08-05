@@ -29,8 +29,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User not in a family' }, { status: 400 })
     }
 
-    if (!user.isAdmin && !user.isOwner) {
-      return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
+    if (!user.isOwner) {
+      return NextResponse.json({ error: 'Owner access required' }, { status: 403 })
     }
 
     // Generate new invite code and ensure it's unique

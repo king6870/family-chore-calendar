@@ -28,7 +28,13 @@ export async function GET(request: NextRequest) {
     }
 
     const rewards = await prisma.reward.findMany({
-      where: { familyId: user.familyId! },
+      where: { 
+        familyId: user.familyId!,
+        // Exclude rewards that have been claimed (one-time rewards)
+        claims: {
+          none: {}
+        }
+      },
       include: {
         creator: { select: { name: true, nickname: true } },
         claims: {

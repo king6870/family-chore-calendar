@@ -14,6 +14,7 @@ interface Reward {
     name?: string;
     nickname?: string;
   };
+  claims?: RewardClaim[];
 }
 
 interface RewardClaim {
@@ -22,6 +23,10 @@ interface RewardClaim {
   pointsSpent: number;
   claimedAt: string;
   reward: Reward;
+  user: {
+    name?: string;
+    nickname?: string;
+  };
   approver?: {
     name?: string;
     nickname?: string;
@@ -35,10 +40,11 @@ interface User {
 export default function RewardStore() {
   const [rewards, setRewards] = useState<Reward[]>([]);
   const [claims, setClaims] = useState<RewardClaim[]>([]);
+  const [claimedRewards, setClaimedRewards] = useState<Reward[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
-  const [activeTab, setActiveTab] = useState<'store' | 'claims'>('store');
+  const [activeTab, setActiveTab] = useState<'store' | 'claims' | 'claimed'>('store');
 
   const categories = [
     { value: 'general', label: '💫 General', emoji: '💫' },
@@ -53,9 +59,10 @@ export default function RewardStore() {
 
   const fetchData = async () => {
     try {
-      const [rewardsRes, claimsRes, userRes] = await Promise.all([
+      const [rewardsRes, claimsRes, claimedRes, userRes] = await Promise.all([
         fetch('/api/admin/rewards'),
         fetch('/api/rewards/claim'),
+        fetch('/api/rewards/claimed'),
         fetch('/api/user')  // Changed from /api/user/profile to /api/user for consistency
       ]);
 
@@ -67,6 +74,11 @@ export default function RewardStore() {
       if (claimsRes.ok) {
         const claimsData = await claimsRes.json();
         setClaims(claimsData.claims || []);
+      }
+
+      if (claimedRes.ok) {
+        const claimedData = await claimedRes.json();
+        setClaimedRewards(claimedData.claimedRewards || []);
       }
 
       if (userRes.ok) {
@@ -161,6 +173,16 @@ export default function RewardStore() {
         >
           📋 My Claims ({claims.length})
         </button>
+        <button
+          onClick={() => setActiveTab('claimed')}
+          className={`pb-2 px-1 font-medium ${
+            activeTab === 'claimed' 
+              ? 'text-purple-600 border-b-2 border-purple-600' 
+              : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          ✅ Claimed ({claimedRewards.length})
+        </button>
       </div>
 
       {activeTab === 'store' && (
@@ -168,7 +190,14 @@ export default function RewardStore() {
           {rewards.length === 0 ? (
             <div className="col-span-full text-center py-8 text-gray-500">
               <div className="text-4xl mb-4">🏪</div>
-              <p>No rewards available yet. Ask your family admin to create some rewards!</p>
+              {claimedRewards.length > 0 ? (
+                <div>
+                  <p className="mb-2">All available rewards have been claimed!</p>
+                  <p className="text-sm">Check the "✅ Claimed" tab to see what's been redeemed, or ask your family admin to create new rewards.</p>
+                </div>
+              ) : (
+                <p>No rewards available yet. Ask your family admin to create some rewards!</p>
+              )}
             </div>
           ) : (
             rewards.map((reward) => {
@@ -256,6 +285,68 @@ export default function RewardStore() {
                       </div>
                     </div>
                   </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      )}
+
+      {activeTab === 'claimed' && (
+        <div className="space-y-4">
+          {claimedRewards.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <div className="text-4xl mb-4">✅</div>
+              <p>No rewards have been claimed yet.</p>
+            </div>
+          ) : (
+            claimedRewards.map((reward) => {
+              const categoryInfo = categories.find(c => c.value === reward.category) || categories[0];
+              const claim = reward.claims?.[0]; // Get the most recent claim
+              
+              return (
+                <div key={reward.id} className="bg-gray-50 p-6 rounded-lg border">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg">{categoryInfo.emoji}</span>
+                        <h3 className="text-lg font-semibold text-gray-900">{reward.title}</h3>
+                        <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                          ✅ CLAIMED
+                        </span>
+                      </div>
+                      
+                      {reward.description && (
+                        <p className="text-gray-600 mb-3">{reward.description}</p>
+                      )}
+                      
+                      <div className="flex items-center gap-4 text-sm text-gray-500">
+                        <span>💰 {reward.pointsRequired} points</span>
+                        <span>👤 Created by: {reward.creator.name || reward.creator.nickname}</span>
+                      </div>
+                    </div>
+                    
+                    {reward.imageUrl && (
+                      <img 
+                        src={reward.imageUrl} 
+                        alt={reward.title}
+                        className="w-16 h-16 object-cover rounded-lg ml-4"
+                      />
+                    )}
+                  </div>
+                  
+                  {claim && (
+                    <div className="mt-4 pt-4 border-t border-gray-200">
+                      <div className="flex items-center justify-between text-sm">
+                        <div className="text-gray-600">
+                          <span className="font-medium">Claimed by:</span> {claim.user.name || claim.user.nickname}
+                        </div>
+                        <div className="text-gray-500">
+                          {new Date(claim.claimedAt).toLocaleDateString()}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })

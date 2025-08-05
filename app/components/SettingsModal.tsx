@@ -222,7 +222,7 @@ export default function SettingsModal({
           >
             👤 Profile
           </button>
-          {(currentUser.isAdmin || currentUser.isOwner) && (
+          {currentUser.isOwner && (
             <button
               onClick={() => setActiveTab('family')}
               className={`px-6 py-3 text-sm font-medium ${
@@ -333,7 +333,7 @@ export default function SettingsModal({
           )}
 
           {/* Family Tab */}
-          {activeTab === 'family' && (currentUser.isAdmin || currentUser.isOwner) && (
+          {activeTab === 'family' && currentUser.isOwner && (
             <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-medium text-gray-900 mb-4">Family Settings</h3>
