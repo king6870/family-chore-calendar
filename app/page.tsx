@@ -10,6 +10,8 @@ import PointsDisplay from './components/PointsDisplay'
 import ChoreCalendar from './components/ChoreCalendar'
 // import ChoreAuction from './components/ChoreAuction' // Hidden for later implementation
 import RewardStore from './components/RewardStore'
+import BirthdateNotification from './components/BirthdateNotification'
+import SettingsModal from './components/SettingsModal'
 
 import { calculateAge } from '@/lib/utils'
 
@@ -40,6 +42,7 @@ export default function Home() {
   const [family, setFamily] = useState<Family | null>(null)
   const [loading, setLoading] = useState(true)
   const [activeSection, setActiveSection] = useState('home')
+  const [showSettings, setShowSettings] = useState(false)
 
   useEffect(() => {
     // Set a maximum loading time of 10 seconds
@@ -157,6 +160,13 @@ export default function Home() {
                   {user.isOwner && <span className="ml-1 px-1 text-xs rounded" style={{ backgroundColor: '#dc2626', color: 'white' }}>OWNER</span>}
                   {user.isAdmin && !user.isOwner && <span className="ml-1 px-1 text-xs rounded" style={{ backgroundColor: '#3b82f6', color: 'white' }}>ADMIN</span>}
                 </span>
+                <button
+                  onClick={() => setShowSettings(true)}
+                  className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
+                  title="Settings"
+                >
+                  ⚙️
+                </button>
               </div>
               <div className="flex items-center space-x-4">
                 <img
@@ -217,6 +227,11 @@ export default function Home() {
         </header>
 
         <main className="max-w-7xl mx-auto px-4 py-6">
+          {/* Birthdate Notification for users without birthdate */}
+          {!user.birthdate && (
+            <BirthdateNotification onBirthdateUpdated={fetchUserData} />
+          )}
+
           {/* Home Section */}
           {activeSection === 'home' && (
             <>
@@ -407,6 +422,15 @@ export default function Home() {
             />
           )}
         </main>
+
+        {/* Settings Modal */}
+        <SettingsModal
+          isOpen={showSettings}
+          onClose={() => setShowSettings(false)}
+          currentUser={user}
+          family={family}
+          onUpdate={fetchUserData}
+        />
       </div>
     )
   }
