@@ -110,17 +110,18 @@ export async function POST(request: NextRequest) {
 
     const weekStartDate = new Date(weekStart);
 
-    // Check if auctions already exist for this week
-    const existingAuctions = await prisma.auction.findMany({
+    // Check if active auctions already exist for this week (completed auctions are OK)
+    const existingActiveAuctions = await prisma.auction.findMany({
       where: {
         familyId: adminUser.familyId,
-        weekStart: weekStartDate
+        weekStart: weekStartDate,
+        status: { not: 'completed' } // Allow creation if only completed auctions exist
       }
     });
 
-    if (existingAuctions.length > 0) {
+    if (existingActiveAuctions.length > 0) {
       return NextResponse.json({ 
-        error: 'Auctions already exist for this week' 
+        error: 'Active auctions already exist for this week. Finalize or delete existing auctions first.' 
       }, { status: 400 });
     }
 

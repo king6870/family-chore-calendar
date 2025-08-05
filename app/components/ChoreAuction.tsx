@@ -85,7 +85,9 @@ export default function ChoreAuction({ currentUser }: ChoreAuctionProps) {
       const response = await fetch(`/api/auctions?weekStart=${currentWeek.toISOString()}`);
       if (response.ok) {
         const data = await response.json();
-        setAuctions(data.auctions || []);
+        // Filter out completed auctions so they don't appear in the UI
+        const activeAuctions = (data.auctions || []).filter((auction: any) => auction.status !== 'completed');
+        setAuctions(activeAuctions);
       } else {
         console.error('Failed to fetch auctions');
         setAuctions([]);
