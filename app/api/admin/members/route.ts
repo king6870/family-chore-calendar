@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { calculateAge } from '@/lib/utils'
 
 export async function GET() {
   try {
@@ -26,7 +27,7 @@ export async function GET() {
         id: true,
         name: true,
         nickname: true,
-        age: true,
+        birthdate: true, // Changed from age to birthdate
         isAdmin: true,
         isOwner: true,
         totalPoints: true,
@@ -39,7 +40,13 @@ export async function GET() {
       ]
     })
 
-    return NextResponse.json({ members })
+    // Transform members to include calculated age
+    const membersWithAge = members.map(member => ({
+      ...member,
+      age: calculateAge(member.birthdate)
+    }))
+
+    return NextResponse.json({ members: membersWithAge })
   } catch (error) {
     console.error('Error fetching members:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -110,7 +117,7 @@ export async function POST(request: NextRequest) {
           data: {
             familyId: null,
             nickname: null,
-            age: null,
+            birthdate: null, // Changed from age to birthdate
             isAdmin: false,
             isOwner: false,
             totalPoints: 0
@@ -131,7 +138,7 @@ export async function POST(request: NextRequest) {
           data: {
             familyId: null,
             nickname: null,
-            age: null,
+            birthdate: null, // Changed from age to birthdate
             isAdmin: false,
             isOwner: false,
             totalPoints: 0

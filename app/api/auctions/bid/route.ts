@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { PrismaClient } from '@prisma/client';
+import { calculateAge } from '@/lib/utils'
 
 const prisma = new PrismaClient();
 
@@ -60,7 +61,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user meets age requirement for the chore
-    if (user.age && auction.Chore.minAge && user.age < auction.Chore.minAge) {
+    if (calculateAge(user.birthdate) && auction.Chore.minAge && calculateAge(user.birthdate) < auction.Chore.minAge) {
       return NextResponse.json({ 
         error: `You must be at least ${auction.Chore.minAge} years old to bid on this chore` 
       }, { status: 400 });

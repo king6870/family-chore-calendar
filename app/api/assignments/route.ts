@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { calculateAge } from '@/lib/utils'
 
 export async function GET(request: NextRequest) {
   try {
@@ -53,7 +54,7 @@ export async function GET(request: NextRequest) {
           select: {
             id: true,
             nickname: true,
-            age: true
+            birthdate: true
           }
         },
         chore: {
@@ -144,7 +145,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check age requirement
-    if (chore.minAge && targetUser.age && targetUser.age < chore.minAge) {
+    if (chore.minAge && calculateAge(targetUser.birthdate) && calculateAge(targetUser.birthdate) < chore.minAge) {
       return NextResponse.json({ 
         error: `User is too young for this chore (requires age ${chore.minAge}+)` 
       }, { status: 400 })
@@ -164,7 +165,7 @@ export async function POST(request: NextRequest) {
           select: {
             id: true,
             nickname: true,
-            age: true
+            birthdate: true
           }
         },
         chore: {

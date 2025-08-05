@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { PrismaClient } from '@prisma/client';
+import { calculateAge } from '@/lib/utils'
 
 const prisma = new PrismaClient();
 
@@ -49,7 +50,7 @@ export async function POST(request: NextRequest) {
         id: true,
         name: true,
         nickname: true,
-        age: true
+        birthdate: true
       }
     });
 
@@ -71,7 +72,7 @@ export async function POST(request: NextRequest) {
     const memberEligibleChores = familyMembers.map(member => ({
       member,
       eligibleChores: allChores.filter(chore => 
-        !member.age || !chore.minAge || member.age >= chore.minAge
+        !calculateAge(member.birthdate) || !chore.minAge || calculateAge(member.birthdate) >= chore.minAge
       )
     }));
 
@@ -122,7 +123,7 @@ export async function POST(request: NextRequest) {
         // Find eligible members for this chore
         const eligibleMembers = memberAssignments.filter(assignment => {
           const member = familyMembers.find(m => m.id === assignment.memberId);
-          return member && (!member.age || !chore.minAge || member.age >= chore.minAge);
+          return member && (!calculateAge(member.birthdate) || !chore.minAge || calculateAge(member.birthdate) >= chore.minAge);
         });
 
         if (eligibleMembers.length === 0) continue;

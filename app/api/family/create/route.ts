@@ -44,9 +44,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { familyName, nickname, age } = await request.json()
+    const { familyName, nickname, birthdate } = await request.json()
 
-    if (!familyName?.trim() || !nickname?.trim() || !age) {
+    if (!familyName?.trim() || !nickname?.trim() || !birthdate) {
       return NextResponse.json({ error: 'All fields are required' }, { status: 400 })
     }
 
@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
       data: {
         familyId: family.id,
         nickname: nickname.trim(),
-        age: parseInt(age),
+        birthdate: new Date(birthdate),
         isAdmin: true, // First member becomes admin
         isOwner: true  // First member becomes owner
       }

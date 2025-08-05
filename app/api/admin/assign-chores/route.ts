@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '../../../../lib/auth';
 import { prisma } from '../../../../lib/prisma';
+import { calculateAge } from '@/lib/utils'
 
 // GET - Fetch available chores and family members for assignment
 export async function GET(request: NextRequest) {
@@ -40,7 +41,7 @@ export async function GET(request: NextRequest) {
         name: true,
         nickname: true,
         email: true,
-        age: true
+        birthdate: true
       },
       orderBy: {
         name: 'asc'
@@ -113,7 +114,7 @@ export async function POST(request: NextRequest) {
 
     // Check age restrictions
     const restrictedUsers = validUsers.filter(user => 
-      user.age && chore.minAge && user.age < chore.minAge
+      calculateAge(user.birthdate) && chore.minAge && calculateAge(user.birthdate) < chore.minAge
     );
 
     if (restrictedUsers.length > 0) {

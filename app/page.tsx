@@ -11,6 +11,8 @@ import ChoreCalendar from './components/ChoreCalendar'
 // import ChoreAuction from './components/ChoreAuction' // Hidden for later implementation
 import RewardStore from './components/RewardStore'
 
+import { calculateAge } from '@/lib/utils'
+
 // Feature flags
 const ENABLE_AUCTIONS = false // Set to true to re-enable auction system
 
@@ -18,7 +20,7 @@ interface User {
   id: string
   name: string
   nickname: string
-  age: number
+  birthdate: string | null
   familyId: string
   isAdmin: boolean
   isOwner: boolean
@@ -119,7 +121,7 @@ export default function Home() {
             id: user.id,
             name: user.name,
             nickname: user.nickname || '',
-            age: user.age || 0,
+            age: calculateAge(user.birthdate),
             isAdmin: user.isAdmin,
             isOwner: user.isOwner,
             totalPoints: user.totalPoints,
@@ -151,7 +153,7 @@ export default function Home() {
               <div className="flex items-center space-x-4">
                 <h1 className="text-2xl font-bold" style={{ color: '#1f2937' }}>🏠 {family.name}</h1>
                 <span className="text-sm px-2 py-1 rounded" style={{ backgroundColor: '#dbeafe', color: '#1e40af' }}>
-                  {user.nickname} ({user.age}y)
+                  {user.nickname} ({calculateAge(user.birthdate)}y)
                   {user.isOwner && <span className="ml-1 px-1 text-xs rounded" style={{ backgroundColor: '#dc2626', color: 'white' }}>OWNER</span>}
                   {user.isAdmin && !user.isOwner && <span className="ml-1 px-1 text-xs rounded" style={{ backgroundColor: '#3b82f6', color: 'white' }}>ADMIN</span>}
                 </span>
@@ -377,7 +379,7 @@ export default function Home() {
                 id: user.id,
                 name: user.name,
                 nickname: user.nickname,
-                age: user.age,
+                age: calculateAge(user.birthdate),
                 isAdmin: user.isAdmin,
                 isOwner: user.isOwner,
                 totalPoints: user.totalPoints,
@@ -395,7 +397,7 @@ export default function Home() {
                 id: user.id,
                 name: user.name,
                 nickname: user.nickname,
-                age: user.age,
+                age: calculateAge(user.birthdate),
                 isAdmin: user.isAdmin,
                 isOwner: user.isOwner,
                 totalPoints: user.totalPoints,

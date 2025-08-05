@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { calculateAge } from '@/lib/utils'
 
 export async function POST() {
   try {
@@ -31,7 +32,7 @@ export async function POST() {
     const [members, chores, weeklyGoal] = await Promise.all([
       prisma.user.findMany({
         where: { familyId: user.familyId },
-        select: { id: true, nickname: true, age: true }
+        select: { id: true, nickname: true, birthdate: true }
       }),
       prisma.chore.findMany({
         where: { familyId: user.familyId },
@@ -71,7 +72,7 @@ export async function POST() {
         points: 0, 
         choreCount: 0, 
         nickname: member.nickname || 'Unknown',
-        age: member.age || 0
+        age: calculateAge(member.birthdate) || 0
       }
       return acc
     }, {} as Record<string, { points: number, choreCount: number, nickname: string, age: number }>)
@@ -93,7 +94,7 @@ export async function POST() {
         
         // Find eligible members (age requirement)
         const eligibleMembers = members.filter(member => 
-          (member.age || 0) >= (chore.minAge || 0)
+          (calculateAge(member.birthdate) || 0) >= (chore.minAge || 0)
         )
 
         if (eligibleMembers.length === 0) continue
@@ -183,7 +184,7 @@ export async function POST() {
 
       while (memberData.points < targetPointsPerMember) {
         const eligibleChores = chores.filter(c => 
-          (member.age || 0) >= (c.minAge || 0) && 
+          (calculateAge(member.birthdate) || 0) >= (c.minAge || 0) && 
           c.points <= (targetPointsPerMember - memberData.points + 5) // Allow slight overage
         )
 

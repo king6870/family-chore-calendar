@@ -1,12 +1,14 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { calculateAge, formatBirthdateForInput } from '@/lib/utils'
 
 interface User {
   id: string
   name: string
   nickname: string
   age: number
+  birthdate?: string | null
   isAdmin: boolean
   isOwner: boolean
   totalPoints: number
@@ -44,10 +46,10 @@ export default function FamilyManagerEnhanced({
   const [mode, setMode] = useState<'choose' | 'create' | 'join'>('choose')
   const [familyName, setFamilyName] = useState('')
   const [nickname, setNickname] = useState('')
-  const [age, setAge] = useState('')
+  const [birthdate, setBirthdate] = useState('')
   const [inviteCode, setInviteCode] = useState('')
   const [joinNickname, setJoinNickname] = useState('')
-  const [joinAge, setJoinAge] = useState('')
+  const [joinBirthdate, setJoinBirthdate] = useState('')
 
   // Members management state
   const [members, setMembers] = useState<User[]>([])
@@ -116,7 +118,7 @@ export default function FamilyManagerEnhanced({
   // Family creation/joining functions
   const createFamily = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!familyName.trim() || !nickname.trim() || !age) return
+    if (!familyName.trim() || !nickname.trim() || !birthdate) return
 
     setLoading(true)
     setError('')
@@ -129,7 +131,7 @@ export default function FamilyManagerEnhanced({
         body: JSON.stringify({
           familyName: familyName.trim(),
           nickname: nickname.trim(),
-          age: parseInt(age),
+          birthdate: new Date(birthdate).toISOString(),
         }),
       })
 
@@ -152,7 +154,7 @@ export default function FamilyManagerEnhanced({
 
   const joinFamily = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!inviteCode.trim() || !joinNickname.trim() || !joinAge) return
+    if (!inviteCode.trim() || !joinNickname.trim() || !joinBirthdate) return
 
     setLoading(true)
     setError('')
@@ -165,7 +167,7 @@ export default function FamilyManagerEnhanced({
         body: JSON.stringify({
           inviteCode: inviteCode.trim(),
           nickname: joinNickname.trim(),
-          age: parseInt(joinAge),
+          birthdate: new Date(joinBirthdate).toISOString(),
         }),
       })
 
@@ -328,15 +330,14 @@ export default function FamilyManagerEnhanced({
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Your Age
+                  Your Birthdate
                 </label>
                 <input
-                  type="number"
-                  value={age}
-                  onChange={(e) => setAge(e.target.value)}
+                  type="date"
+                  value={birthdate}
+                  onChange={(e) => setBirthdate(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  min="1"
-                  max="100"
+                  max={new Date().toISOString().split('T')[0]} // Can't be in the future
                   required
                 />
               </div>
@@ -397,15 +398,14 @@ export default function FamilyManagerEnhanced({
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Your Age
+                  Your Birthdate
                 </label>
                 <input
-                  type="number"
-                  value={joinAge}
-                  onChange={(e) => setJoinAge(e.target.value)}
+                  type="date"
+                  value={joinBirthdate}
+                  onChange={(e) => setJoinBirthdate(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  min="1"
-                  max="100"
+                  max={new Date().toISOString().split('T')[0]} // Can't be in the future
                   required
                 />
               </div>

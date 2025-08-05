@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { calculateAge } from '@/lib/utils'
 
 export async function DELETE() {
   try {
@@ -46,7 +47,7 @@ export async function DELETE() {
         data: {
           familyId: null,
           nickname: null,
-          age: null,
+          birthdate: null,
           isAdmin: false,
           isOwner: false,
           totalPoints: 0

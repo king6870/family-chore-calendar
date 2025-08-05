@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { calculateAge } from '@/lib/utils'
 
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'
@@ -30,7 +31,8 @@ export async function GET() {
         id: user.id,
         name: user.name,
         nickname: user.nickname,
-        age: user.age,
+        birthdate: user.birthdate?.toISOString() || null,
+        age: calculateAge(user.birthdate), // Calculate age from birthdate
         familyId: user.familyId,
         isAdmin: user.isAdmin,
         isOwner: user.isOwner,
