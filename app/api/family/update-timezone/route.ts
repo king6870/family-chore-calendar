@@ -23,32 +23,31 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 
-    const { familyName, location, timezone } = await request.json()
-
-    if (!familyName?.trim()) {
-      return NextResponse.json({ error: 'Family name is required' }, { status: 400 })
-    }
+    const { location, timezone } = await request.json()
 
     if (!location?.trim()) {
-      return NextResponse.json({ error: 'Family location is required' }, { status: 400 })
+      return NextResponse.json({ error: 'Location is required' }, { status: 400 })
     }
 
-    // Update family information
+    if (!timezone?.trim()) {
+      return NextResponse.json({ error: 'Timezone is required' }, { status: 400 })
+    }
+
+    // Update family location and timezone
     await prisma.family.update({
       where: { id: user.familyId },
       data: { 
-        name: familyName.trim(),
         location: location.trim(),
-        timezone: timezone || 'UTC'
+        timezone: timezone.trim()
       }
     })
 
     return NextResponse.json({ 
       success: true, 
-      message: 'Family name updated successfully' 
+      message: 'Family timezone updated successfully' 
     })
   } catch (error) {
-    console.error('Error updating family:', error)
+    console.error('Error updating family timezone:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

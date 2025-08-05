@@ -41,7 +41,9 @@ export async function GET() {
       family: user.family ? {
         id: user.family.id,
         name: user.family.name,
-        inviteCode: user.family.inviteCode
+        inviteCode: user.family.inviteCode,
+        location: user.family.location,
+        timezone: user.family.timezone
       } : null
     })
   } catch (error) {

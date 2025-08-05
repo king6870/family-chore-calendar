@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { calculateAge, formatBirthdateForInput } from '@/lib/utils'
+import { calculateAge, formatBirthdateForInput, getTimezoneFromLocation, formatTimezone, getCurrentTimeInTimezone } from '@/lib/utils'
 
 interface User {
   id: string
@@ -19,6 +19,8 @@ interface Family {
   id: string
   name: string
   inviteCode: string
+  location?: string
+  timezone?: string
 }
 
 interface SettingsModalProps {
@@ -49,6 +51,19 @@ export default function SettingsModal({
 
   // Family settings
   const [familyName, setFamilyName] = useState(family.name || '')
+  const [familyLocation, setFamilyLocation] = useState(family.location || '')
+  const [previewTimezone, setPreviewTimezone] = useState(family.timezone || '')
+
+  // Handle family location change
+  const handleFamilyLocationChange = (value: string) => {
+    setFamilyLocation(value)
+    if (value.trim()) {
+      const timezone = getTimezoneFromLocation(value)
+      setPreviewTimezone(timezone)
+    } else {
+      setPreviewTimezone(family.timezone || '')
+    }
+  }
 
   useEffect(() => {
     if (isOpen) {
@@ -57,6 +72,8 @@ export default function SettingsModal({
       setNickname(currentUser.nickname || '')
       setBirthdate(currentUser.birthdate ? formatBirthdateForInput(currentUser.birthdate) : '')
       setFamilyName(family.name || '')
+      setFamilyLocation(family.location || '')
+      setPreviewTimezone(family.timezone || '')
       setMessage(null)
     }
   }, [isOpen, currentUser, family])
@@ -116,6 +133,11 @@ export default function SettingsModal({
       return
     }
 
+    if (!familyLocation.trim()) {
+      setMessage({ type: 'error', text: 'Family location is required' })
+      return
+    }
+
     setLoading(true)
     setMessage(null)
 
@@ -124,7 +146,9 @@ export default function SettingsModal({
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          familyName: familyName.trim()
+          familyName: familyName.trim(),
+          location: familyLocation.trim(),
+          timezone: previewTimezone
         })
       })
 
@@ -328,6 +352,31 @@ export default function SettingsModal({
                       disabled={loading}
                       required
                     />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Family Location *
+                    </label>
+                    <input
+                      type="text"
+                      value={familyLocation}
+                      onChange={(e) => handleFamilyLocationChange(e.target.value)}
+                      placeholder="e.g., New York, Los Angeles, London"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      disabled={loading}
+                      required
+                    />
+                    {previewTimezone && (
+                      <div className="mt-2 p-2 bg-blue-50 rounded-md">
+                        <p className="text-xs text-blue-700">
+                          <span className="font-medium">Timezone:</span> {formatTimezone(previewTimezone)}
+                        </p>
+                        <p className="text-xs text-blue-700">
+                          <span className="font-medium">Current Time:</span> {getCurrentTimeInTimezone(previewTimezone)}
+                        </p>
+                      </div>
+                    )}
                   </div>
 
                   <div className="bg-gray-50 p-4 rounded-lg">

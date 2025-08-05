@@ -12,6 +12,7 @@ import ChoreCalendar from './components/ChoreCalendar'
 import RewardStore from './components/RewardStore'
 import BirthdateNotification from './components/BirthdateNotification'
 import SettingsModal from './components/SettingsModal'
+import TimezoneNotification from './components/TimezoneNotification'
 
 import { calculateAge } from '@/lib/utils'
 
@@ -34,6 +35,8 @@ interface Family {
   id: string
   name: string
   inviteCode: string
+  location?: string
+  timezone?: string
 }
 
 export default function Home() {
@@ -230,6 +233,11 @@ export default function Home() {
           {/* Birthdate Notification for users without birthdate */}
           {!user.birthdate && (
             <BirthdateNotification onBirthdateUpdated={fetchUserData} />
+          )}
+
+          {/* Timezone Notification for families without timezone */}
+          {!family.timezone && (user.isAdmin || user.isOwner) && (
+            <TimezoneNotification onTimezoneUpdated={fetchUserData} />
           )}
 
           {/* Home Section */}

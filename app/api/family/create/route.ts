@@ -44,9 +44,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { familyName, nickname, birthdate } = await request.json()
+    const { familyName, nickname, birthdate, location, timezone } = await request.json()
 
-    if (!familyName?.trim() || !nickname?.trim() || !birthdate) {
+    if (!familyName?.trim() || !nickname?.trim() || !birthdate || !location?.trim()) {
       return NextResponse.json({ error: 'All fields are required' }, { status: 400 })
     }
 
@@ -72,7 +72,9 @@ export async function POST(request: NextRequest) {
     const family = await prisma.family.create({
       data: {
         name: familyName.trim(),
-        inviteCode
+        inviteCode,
+        location: location.trim(),
+        timezone: timezone || 'UTC'
       }
     })
 

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { calculateAge, formatBirthdateForInput } from '@/lib/utils'
+import { calculateAge, formatBirthdateForInput, getTimezoneFromLocation, formatTimezone, getCurrentTimeInTimezone } from '@/lib/utils'
 
 interface User {
   id: string
@@ -47,6 +47,8 @@ export default function FamilyManagerEnhanced({
   const [familyName, setFamilyName] = useState('')
   const [nickname, setNickname] = useState('')
   const [birthdate, setBirthdate] = useState('')
+  const [location, setLocation] = useState('')
+  const [previewTimezone, setPreviewTimezone] = useState('')
   const [inviteCode, setInviteCode] = useState('')
   const [joinNickname, setJoinNickname] = useState('')
   const [joinBirthdate, setJoinBirthdate] = useState('')
@@ -115,10 +117,21 @@ export default function FamilyManagerEnhanced({
     }
   }
 
+  // Handle location change and timezone preview
+  const handleLocationChange = (value: string) => {
+    setLocation(value)
+    if (value.trim()) {
+      const timezone = getTimezoneFromLocation(value)
+      setPreviewTimezone(timezone)
+    } else {
+      setPreviewTimezone('')
+    }
+  }
+
   // Family creation/joining functions
   const createFamily = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!familyName.trim() || !nickname.trim() || !birthdate) return
+    if (!familyName.trim() || !nickname.trim() || !birthdate || !location.trim()) return
 
     setLoading(true)
     setError('')
@@ -132,6 +145,8 @@ export default function FamilyManagerEnhanced({
           familyName: familyName.trim(),
           nickname: nickname.trim(),
           birthdate: new Date(birthdate).toISOString(),
+          location: location.trim(),
+          timezone: getTimezoneFromLocation(location),
         }),
       })
 
@@ -340,6 +355,30 @@ export default function FamilyManagerEnhanced({
                   max={new Date().toISOString().split('T')[0]} // Can't be in the future
                   required
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Your Location (City)
+                </label>
+                <input
+                  type="text"
+                  value={location}
+                  onChange={(e) => handleLocationChange(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="e.g., New York, Los Angeles, London"
+                  required
+                />
+                {previewTimezone && (
+                  <div className="mt-2 p-2 bg-blue-50 rounded-md">
+                    <p className="text-xs text-blue-700">
+                      <span className="font-medium">Timezone:</span> {formatTimezone(previewTimezone)}
+                    </p>
+                    <p className="text-xs text-blue-700">
+                      <span className="font-medium">Current Time:</span> {getCurrentTimeInTimezone(previewTimezone)}
+                    </p>
+                  </div>
+                )}
               </div>
               
               <button
