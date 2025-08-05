@@ -111,6 +111,7 @@ export async function POST(request: NextRequest) {
               date: assignmentDate,
               dayOfWeek: dayNames[assignmentDate.getDay()],
               completed: false,
+              bidPoints: lowestBid.bidPoints, // Store the bid amount
               createdAt: new Date()
             });
           }

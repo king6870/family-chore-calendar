@@ -99,13 +99,15 @@ export async function PATCH(
       weekStart.setDate(diff)
       weekStart.setHours(0, 0, 0, 0)
 
-      // Award points
+      // Award points (use bid points if from auction, otherwise use chore points)
+      const pointsToAward = assignment.bidPoints || assignment.chore.points;
+      
       await prisma.pointsEarned.create({
         data: {
           userId: assignment.userId,
           familyId: assignment.familyId,
           choreId: assignment.choreId,
-          points: assignment.chore.points,
+          points: pointsToAward,
           date: new Date(),
           weekStart: weekStart
         }
@@ -116,7 +118,7 @@ export async function PATCH(
         where: { id: assignment.userId },
         data: {
           totalPoints: {
-            increment: assignment.chore.points
+            increment: pointsToAward
           }
         }
       })
@@ -128,7 +130,7 @@ export async function PATCH(
             userId: assignment.userId,
             familyId: assignment.familyId,
             action: 'completed_chore',
-            details: `Completed "${assignment.chore.name}" and earned ${assignment.chore.points} points. Chore completed by ${assignment.user.nickname} on ${new Date().toLocaleDateString()}`
+            details: `Completed "${assignment.chore.name}" and earned ${pointsToAward} points. Chore completed by ${assignment.user.nickname} on ${new Date().toLocaleDateString()}`
           }
         });
       } catch (logError) {

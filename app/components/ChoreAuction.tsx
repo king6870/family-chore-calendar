@@ -348,6 +348,56 @@ export default function ChoreAuction({ currentUser }: ChoreAuctionProps) {
     return lowestBid?.user.id === currentUser.id;
   };
 
+  // Admin function to stop an auction
+  const stopAuction = async (auctionId: string) => {
+    if (!confirm('Are you sure you want to stop this auction? This cannot be undone.')) return;
+
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/auctions/${auctionId}`, {
+        method: 'PATCH'
+      });
+
+      if (response.ok) {
+        setMessage({ type: 'success', text: 'Auction stopped successfully!' });
+        fetchAuctions(); // Refresh the auctions
+      } else {
+        const errorData = await response.json();
+        setMessage({ type: 'error', text: errorData.error || 'Failed to stop auction' });
+      }
+    } catch (error) {
+      console.error('Error stopping auction:', error);
+      setMessage({ type: 'error', text: 'An error occurred while stopping the auction' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Admin function to delete an auction
+  const deleteAuction = async (auctionId: string, choreName: string) => {
+    if (!confirm(`Are you sure you want to delete the auction for "${choreName}"? This will remove all bids and cannot be undone.`)) return;
+
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/auctions/${auctionId}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        setMessage({ type: 'success', text: 'Auction deleted successfully!' });
+        fetchAuctions(); // Refresh the auctions
+      } else {
+        const errorData = await response.json();
+        setMessage({ type: 'error', text: errorData.error || 'Failed to delete auction' });
+      }
+    } catch (error) {
+      console.error('Error deleting auction:', error);
+      setMessage({ type: 'error', text: 'An error occurred while deleting the auction' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -661,6 +711,28 @@ export default function ChoreAuction({ currentUser }: ChoreAuctionProps) {
                             )}
                           </div>
                         )}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Admin Controls */}
+                  {currentUser.isAdmin && auction.status === 'active' && (
+                    <div className="border-t pt-4 mt-4">
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <button
+                          onClick={() => stopAuction(auction.id)}
+                          disabled={loading}
+                          className="flex-1 px-3 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium transition-colors"
+                        >
+                          ⏸️ Stop Auction
+                        </button>
+                        <button
+                          onClick={() => deleteAuction(auction.id, auction.Chore.name)}
+                          disabled={loading}
+                          className="flex-1 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium transition-colors"
+                        >
+                          🗑️ Delete Auction
+                        </button>
                       </div>
                     </div>
                   )}

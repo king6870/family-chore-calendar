@@ -113,6 +113,7 @@ model ChoreAssignment {
   choreId     String
   userId      String
   familyId    String
+  bidPoints   Int?      // Points from auction bid (if assignment came from auction)
   updatedAt   DateTime  @updatedAt
   chore       Chore     @relation(fields: [choreId], references: [id], onDelete: Cascade)
   family      Family    @relation(fields: [familyId], references: [id], onDelete: Cascade)
