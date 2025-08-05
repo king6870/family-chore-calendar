@@ -398,6 +398,86 @@ export default function ChoreAuction({ currentUser }: ChoreAuctionProps) {
     }
   };
 
+  // Admin function to stop all auctions
+  const stopAllAuctions = async () => {
+    const activeCount = auctions.filter(a => a.status === 'active').length;
+    if (activeCount === 0) {
+      setMessage({ type: 'error', text: 'No active auctions to stop' });
+      return;
+    }
+
+    if (!confirm(`Are you sure you want to stop all ${activeCount} active auctions? This cannot be undone.`)) return;
+
+    setLoading(true);
+    try {
+      const response = await fetch('/api/auctions/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          action: 'stopAll', 
+          weekStart: currentWeek.toISOString() 
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setMessage({ 
+          type: 'success', 
+          text: `${data.message}${data.auctions?.length > 0 ? ': ' + data.auctions.join(', ') : ''}` 
+        });
+        fetchAuctions(); // Refresh the auctions
+      } else {
+        const errorData = await response.json();
+        setMessage({ type: 'error', text: errorData.error || 'Failed to stop auctions' });
+      }
+    } catch (error) {
+      console.error('Error stopping all auctions:', error);
+      setMessage({ type: 'error', text: 'An error occurred while stopping auctions' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Admin function to delete all auctions
+  const deleteAllAuctions = async () => {
+    const deletableCount = auctions.filter(a => a.status !== 'completed').length;
+    if (deletableCount === 0) {
+      setMessage({ type: 'error', text: 'No auctions available to delete (completed auctions cannot be deleted)' });
+      return;
+    }
+
+    if (!confirm(`Are you sure you want to DELETE all ${deletableCount} auctions? This will remove all bids and cannot be undone.`)) return;
+
+    setLoading(true);
+    try {
+      const response = await fetch('/api/auctions/bulk', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          action: 'deleteAll', 
+          weekStart: currentWeek.toISOString() 
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setMessage({ 
+          type: 'success', 
+          text: `${data.message}${data.auctions?.length > 0 ? ': ' + data.auctions.join(', ') : ''}` 
+        });
+        fetchAuctions(); // Refresh the auctions
+      } else {
+        const errorData = await response.json();
+        setMessage({ type: 'error', text: errorData.error || 'Failed to delete auctions' });
+      }
+    } catch (error) {
+      console.error('Error deleting all auctions:', error);
+      setMessage({ type: 'error', text: 'An error occurred while deleting auctions' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -472,22 +552,58 @@ export default function ChoreAuction({ currentUser }: ChoreAuctionProps) {
             </button>
             
             {auctions.length > 0 && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  finalizeAuctions();
-                }}
-                disabled={loading}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  loading
-                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    : 'bg-orange-600 hover:bg-orange-700 text-white'
-                }`}
-              >
-                ⚡ Finalize Auctions
-              </button>
+              <>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    finalizeAuctions();
+                  }}
+                  disabled={loading}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                    loading
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      : 'bg-orange-600 hover:bg-orange-700 text-white'
+                  }`}
+                >
+                  ⚡ Finalize Auctions
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    stopAllAuctions();
+                  }}
+                  disabled={loading || auctions.filter(a => a.status === 'active').length === 0}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                    loading || auctions.filter(a => a.status === 'active').length === 0
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      : 'bg-yellow-600 hover:bg-yellow-700 text-white'
+                  }`}
+                >
+                  ⏸️ Stop All Auctions
+                </button>
+                
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    deleteAllAuctions();
+                  }}
+                  disabled={loading || auctions.filter(a => a.status !== 'completed').length === 0}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                    loading || auctions.filter(a => a.status !== 'completed').length === 0
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      : 'bg-red-600 hover:bg-red-700 text-white'
+                  }`}
+                >
+                  🗑️ Delete All Auctions
+                </button>
+              </>
             )}
           </div>
         )}
