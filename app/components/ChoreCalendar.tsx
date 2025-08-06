@@ -28,6 +28,7 @@ interface User {
   name: string;
   nickname: string;
   isAdmin: boolean;
+  isOwner: boolean;
 }
 
 interface ChoreCalendarProps {
@@ -39,7 +40,7 @@ export default function ChoreCalendar({ currentUser }: ChoreCalendarProps) {
   const [assignments, setAssignments] = useState<ChoreAssignment[]>([]);
   const [currentWeek, setCurrentWeek] = useState<Date>(getStartOfWeek(new Date()));
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [message, setMessage] = useState<{ type: 'success' | 'error' | 'warning'; text: string } | null>(null);
   const [isMobile, setIsMobile] = useState(false);
 
   // Drag & Drop states (Admin only)
@@ -167,14 +168,21 @@ export default function ChoreCalendar({ currentUser }: ChoreCalendarProps) {
   };
 
   const handleChoreToggle = async (assignmentId: string, completed: boolean) => {
-    // Only allow marking as complete, not incomplete
+    // Find the assignment to check ownership
+    const assignment = assignments.find(a => a.id === assignmentId);
+    if (!assignment) return;
+
+    // Allow unchecking only if admin is unchecking someone else's chore
     if (!completed) {
-      setMessage({
-        type: 'error',
-        text: 'Cannot mark completed chores as incomplete. Each chore can only be redeemed once.'
-      });
-      setTimeout(() => setMessage(null), 3000);
-      return;
+      const isAdminUnchecking = currentUser.isAdmin && assignment.user.id !== currentUser.id;
+      if (!isAdminUnchecking) {
+        setMessage({
+          type: 'error',
+          text: 'Cannot mark completed chores as incomplete. Each chore can only be redeemed once.'
+        });
+        setTimeout(() => setMessage(null), 3000);
+        return;
+      }
     }
 
     try {
@@ -186,20 +194,31 @@ export default function ChoreCalendar({ currentUser }: ChoreCalendarProps) {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Chore completion successful:', data);
+        console.log('Chore toggle successful:', data);
         
         // Update local state
         setAssignments(prev => prev.map(assignment => 
           assignment.id === assignmentId 
-            ? { ...assignment, completed: true, completedAt: new Date().toISOString() }
+            ? { 
+                ...assignment, 
+                completed, 
+                completedAt: completed ? new Date().toISOString() : null 
+              }
             : assignment
         ));
 
-        // Show success message with points info
-        setMessage({
-          type: 'success',
-          text: `🎉 Chore completed and redeemed! You earned ${data.assignment?.chore?.points || 'some'} points!`
-        });
+        // Show appropriate message
+        if (completed) {
+          setMessage({
+            type: 'success',
+            text: `🎉 Chore completed and redeemed! You earned ${data.assignment?.chore?.points || 'some'} points!`
+          });
+        } else {
+          setMessage({
+            type: 'warning',
+            text: `⚠️ Chore marked as incomplete due to poor quality. Points have been reversed.`
+          });
+        }
 
         // Clear message after 3 seconds
         setTimeout(() => setMessage(null), 3000);
@@ -680,6 +699,8 @@ export default function ChoreCalendar({ currentUser }: ChoreCalendarProps) {
           <div className={`mt-4 p-4 rounded-lg ${
             message.type === 'success' 
               ? 'bg-green-50 text-green-800 border border-green-200' 
+              : message.type === 'warning'
+              ? 'bg-yellow-50 text-yellow-800 border border-yellow-200'
               : 'bg-red-50 text-red-800 border border-red-200'
           }`}>
             {message.text}
@@ -889,6 +910,17 @@ export default function ChoreCalendar({ currentUser }: ChoreCalendarProps) {
                                     ✓
                                   </button>
                                 )}
+
+                                {/* Admin Uncheck Button - Only show for completed chores by others */}
+                                {assignment.completed && currentUser.isAdmin && assignment.user.id !== currentUser.id && (
+                                  <button
+                                    onClick={() => handleChoreToggle(assignment.id, false)}
+                                    className="w-full py-1 px-1 rounded text-xs font-medium transition-colors mt-1 bg-red-100 text-red-800 hover:bg-red-200"
+                                    title="Mark as incomplete (poor quality)"
+                                  >
+                                    ✗ Uncheck
+                                  </button>
+                                )}
                                 
                                 {/* Completed indicator */}
                                 {assignment.completed && (
@@ -999,6 +1031,17 @@ export default function ChoreCalendar({ currentUser }: ChoreCalendarProps) {
                               <div className="w-full py-1 px-2 rounded text-xs font-medium bg-green-200 text-green-800 text-center">
                                 ✓ Completed & Redeemed
                               </div>
+                            )}
+
+                            {/* Admin Uncheck Button - Only show for completed chores by others */}
+                            {assignment.completed && currentUser.isAdmin && assignment.user.id !== currentUser.id && (
+                              <button
+                                onClick={() => handleChoreToggle(assignment.id, false)}
+                                className="w-full py-1 px-2 rounded text-xs font-medium transition-colors mt-1 bg-red-100 text-red-800 hover:bg-red-200"
+                                title="Mark as incomplete (poor quality)"
+                              >
+                                ✗ Mark Incomplete (Poor Quality)
+                              </button>
                             )}
 
                             {/* Completion Status */}

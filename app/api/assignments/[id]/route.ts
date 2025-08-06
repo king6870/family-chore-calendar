@@ -44,16 +44,20 @@ export async function PATCH(
     }
 
     // Check if user can toggle this assignment (own chore or admin)
-    const canToggle = assignment.userId === user.id || user.isAdmin
+    const canToggle = assignment.userId === user.id || user.isAdmin || user.isOwner
     if (!canToggle) {
       return NextResponse.json({ error: 'Permission denied' }, { status: 403 })
     }
 
-    // Prevent marking completed chores as incomplete (one-time redemption rule)
+    // Allow admins/owners to uncheck completed chores (for quality control)
+    // Regular users cannot uncheck their own completed chores (one-time redemption rule)
     if (assignment.completed && !completed) {
-      return NextResponse.json({ 
-        error: 'Cannot mark completed chores as incomplete. Each chore can only be redeemed once.' 
-      }, { status: 400 })
+      const isAdminUnchecking = (user.isAdmin || user.isOwner) && assignment.userId !== user.id
+      if (!isAdminUnchecking) {
+        return NextResponse.json({ 
+          error: 'Cannot mark completed chores as incomplete. Each chore can only be redeemed once.' 
+        }, { status: 400 })
+      }
     }
 
     // Prevent completing already completed chores
@@ -136,6 +140,57 @@ export async function PATCH(
         });
       } catch (logError) {
         console.error('Failed to create activity log:', logError);
+      }
+    }
+
+    // If admin is unchecking a completed chore, reverse the points
+    if (!completed && assignment.completed && (user.isAdmin || user.isOwner) && assignment.userId !== user.id) {
+      const pointsToReverse = assignment.bidPoints || assignment.chore.points;
+      
+      // Find and delete the points earned record for this chore completion
+      try {
+        await prisma.pointsEarned.deleteMany({
+          where: {
+            userId: assignment.userId,
+            familyId: assignment.familyId,
+            choreId: assignment.choreId,
+            points: pointsToReverse,
+            // Find the most recent points earned for this chore (in case of multiple completions)
+            date: {
+              gte: new Date(assignment.completedAt || assignment.date)
+            }
+          }
+        });
+
+        // Update user's total points (subtract the points)
+        await prisma.user.update({
+          where: { id: assignment.userId },
+          data: {
+            totalPoints: {
+              decrement: pointsToReverse
+            }
+          }
+        });
+
+        // Log the admin action (non-blocking)
+        try {
+          const adminName = user.nickname || user.name || 'Admin';
+          const memberName = assignment.user.nickname || 'Member';
+          
+          await prisma.activityLog.create({
+            data: {
+              userId: user.id, // Log under admin's ID
+              familyId: assignment.familyId,
+              action: 'admin_unchecked_chore',
+              details: `${adminName} marked "${assignment.chore.name}" as incomplete for ${memberName}. ${pointsToReverse} points reversed due to poor quality.`
+            }
+          });
+        } catch (logError) {
+          console.error('Failed to create admin action log:', logError);
+        }
+      } catch (pointsError) {
+        console.error('Failed to reverse points:', pointsError);
+        // Continue with the assignment update even if points reversal fails
       }
     }
 
