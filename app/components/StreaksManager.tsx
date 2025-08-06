@@ -117,13 +117,7 @@ export default function StreaksManager() {
       const response = await fetch('/api/user');
       if (response.ok) {
         const data = await response.json();
-        console.log('Admin status check - User data:', data.user);
-        console.log('isAdmin:', data.user?.isAdmin, 'isOwner:', data.user?.isOwner);
-        const isAdminOrOwnerStatus = data.user?.isAdmin || data.user?.isOwner;
-        console.log('Setting isAdminOrOwner to:', isAdminOrOwnerStatus);
-        setIsAdminOrOwner(isAdminOrOwnerStatus);
-      } else {
-        console.error('Failed to fetch user data:', response.status);
+        setIsAdminOrOwner(data.user?.isAdmin || data.user?.isOwner);
       }
     } catch (error) {
       console.error('Error checking admin status:', error);
@@ -238,7 +232,7 @@ export default function StreaksManager() {
       ...prev,
       tasks: prev.tasks.map((task, i) => 
         i === taskIndex 
-          ? { ...task, options: [...task.options, { title: '', description: '' }] }
+          ? { ...task, options: [...(task.options || []), { title: '', description: '' }] }
           : task
       )
     }));
@@ -251,7 +245,7 @@ export default function StreaksManager() {
         i === taskIndex 
           ? {
               ...task,
-              options: task.options.map((option, j) => 
+              options: (task.options || []).map((option, j) => 
                 j === optionIndex ? { ...option, [field]: value } : option
               )
             }
@@ -274,7 +268,7 @@ export default function StreaksManager() {
       ...prev,
       tasks: prev.tasks.map((task, i) => 
         i === taskIndex 
-          ? { ...task, options: task.options.filter((_, j) => j !== optionIndex) }
+          ? { ...task, options: (task.options || []).filter((_, j) => j !== optionIndex) }
           : task
       )
     }));
@@ -292,7 +286,7 @@ export default function StreaksManager() {
 
   const getCurrentDayTasks = (streak: Streak) => {
     if (streak.status !== 'active') return [];
-    const currentDay = streak.days.find(d => d.dayNumber === streak.currentDay);
+    const currentDay = streak.days?.find(d => d.dayNumber === streak.currentDay);
     return currentDay?.taskCompletions || [];
   };
 
@@ -306,10 +300,6 @@ export default function StreaksManager() {
     <div className="max-w-6xl mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-900">🔥 Streaks</h1>
-        {/* Debug info */}
-        <div className="text-xs text-gray-500 mr-4">
-          Admin/Owner: {isAdminOrOwner ? 'Yes' : 'No'} | Loading: {loading ? 'Yes' : 'No'}
-        </div>
         {isAdminOrOwner && (
           <button
             onClick={() => setShowCreateForm(true)}
@@ -445,7 +435,7 @@ export default function StreaksManager() {
                           </button>
                         </div>
 
-                        {task.options.map((option, optionIndex) => (
+                        {(task.options || []).map((option, optionIndex) => (
                           <div key={optionIndex} className="flex gap-2 mb-2">
                             <input
                               type="text"
@@ -504,7 +494,7 @@ export default function StreaksManager() {
 
       {/* Streaks List */}
       <div className="space-y-6">
-        {streaks.length === 0 ? (
+        {(streaks || []).length === 0 ? (
           <div className="text-center py-12">
             <div className="text-6xl mb-4">🔥</div>
             <h3 className="text-xl font-medium text-gray-900 mb-2">No streaks yet</h3>
@@ -513,7 +503,7 @@ export default function StreaksManager() {
             </p>
           </div>
         ) : (
-          streaks.map(streak => (
+          (streaks || []).map(streak => (
             <div key={streak.id} className="bg-white rounded-lg shadow-md p-6">
               <div className="flex justify-between items-start mb-4">
                 <div>
@@ -593,9 +583,9 @@ export default function StreaksManager() {
                         </div>
 
                         {/* Task Options */}
-                        {completion.task.options.length > 0 && (
+                        {(completion.task.options || []).length > 0 && (
                           <div className="flex gap-2">
-                            {completion.task.options.map(option => (
+                            {(completion.task.options || []).map(option => (
                               <button
                                 key={option.id}
                                 onClick={() => completeTask(streak.id, completion.task.id, true, option.id)}
