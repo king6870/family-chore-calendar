@@ -101,10 +101,14 @@ export default function StreaksManager() {
       const response = await fetch('/api/family/members');
       if (response.ok) {
         const data = await response.json();
-        setFamilyMembers(data);
+        setFamilyMembers(data || []); // Ensure it's always an array
+      } else {
+        console.error('Failed to fetch family members:', response.status);
+        setFamilyMembers([]); // Set empty array on error
       }
     } catch (error) {
       console.error('Error fetching family members:', error);
+      setFamilyMembers([]); // Set empty array on error
     }
   };
 
@@ -113,7 +117,13 @@ export default function StreaksManager() {
       const response = await fetch('/api/user');
       if (response.ok) {
         const data = await response.json();
-        setIsAdminOrOwner(data.user?.isAdmin || data.user?.isOwner);
+        console.log('Admin status check - User data:', data.user);
+        console.log('isAdmin:', data.user?.isAdmin, 'isOwner:', data.user?.isOwner);
+        const isAdminOrOwnerStatus = data.user?.isAdmin || data.user?.isOwner;
+        console.log('Setting isAdminOrOwner to:', isAdminOrOwnerStatus);
+        setIsAdminOrOwner(isAdminOrOwnerStatus);
+      } else {
+        console.error('Failed to fetch user data:', response.status);
       }
     } catch (error) {
       console.error('Error checking admin status:', error);
@@ -296,6 +306,10 @@ export default function StreaksManager() {
     <div className="max-w-6xl mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-900">🔥 Streaks</h1>
+        {/* Debug info */}
+        <div className="text-xs text-gray-500 mr-4">
+          Admin/Owner: {isAdminOrOwner ? 'Yes' : 'No'} | Loading: {loading ? 'Yes' : 'No'}
+        </div>
         {isAdminOrOwner && (
           <button
             onClick={() => setShowCreateForm(true)}
@@ -368,7 +382,7 @@ export default function StreaksManager() {
                   className="w-full border border-gray-300 rounded-md px-3 py-2"
                 >
                   <option value="">Select family member</option>
-                  {familyMembers.map(member => (
+                  {(familyMembers || []).map(member => (
                     <option key={member.id} value={member.id}>
                       {member.nickname || member.name}
                     </option>
@@ -479,7 +493,7 @@ export default function StreaksManager() {
               <button
                 onClick={createStreak}
                 className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
-                disabled={!newStreak.title || !newStreak.assigneeId || newStreak.tasks.some(t => !t.title)}
+                disabled={!newStreak.title || !newStreak.assigneeId || (newStreak.tasks || []).some(t => !t.title)}
               >
                 Create Streak
               </button>
