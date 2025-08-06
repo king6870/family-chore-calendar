@@ -10,6 +10,7 @@ import PointsDisplay from './components/PointsDisplay'
 import ChoreCalendar from './components/ChoreCalendar'
 // import ChoreAuction from './components/ChoreAuction' // Hidden for later implementation
 import RewardStore from './components/RewardStore'
+import StreaksManager from './components/StreaksManager'
 import BirthdateNotification from './components/BirthdateNotification'
 import SettingsModal from './components/SettingsModal'
 import TimezoneNotification from './components/TimezoneNotification'
@@ -197,6 +198,7 @@ export default function Home() {
                   { id: 'home', label: '🏠 Home', icon: '🏠' },
                   { id: 'calendar', label: '📅 Calendar', icon: '📅' },
                   { id: 'points', label: '⭐ Points', icon: '⭐' },
+                  { id: 'streaks', label: '🔥 Streaks', icon: '🔥' },
                   { id: 'rewards', label: '🎁 Rewards', icon: '🎁' },
                   ...(ENABLE_AUCTIONS ? [{ id: 'auctions', label: '🏛️ Auctions', icon: '🏛️' }] : []),
                   { id: 'family', label: '👥 Family', icon: '👥' },
@@ -372,6 +374,11 @@ export default function Home() {
                 </div>
               </div>
             </div>
+          )}
+
+          {/* Streaks Section */}
+          {activeSection === 'streaks' && (
+            <StreaksManager />
           )}
 
           {/* Rewards Section */}
