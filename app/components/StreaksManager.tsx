@@ -113,7 +113,7 @@ export default function StreaksManager() {
       const response = await fetch('/api/user');
       if (response.ok) {
         const data = await response.json();
-        setIsAdminOrOwner(data.isAdmin || data.isOwner);
+        setIsAdminOrOwner(data.user?.isAdmin || data.user?.isOwner);
       }
     } catch (error) {
       console.error('Error checking admin status:', error);
