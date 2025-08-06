@@ -183,6 +183,14 @@ export default function ChoreCalendar({ currentUser }: ChoreCalendarProps) {
         setTimeout(() => setMessage(null), 3000);
         return;
       }
+
+      // Confirm admin unchecking action
+      const memberName = assignment.user.nickname || 'this member';
+      const confirmMessage = `Are you sure you want to mark "${assignment.chore.name}" as incomplete for ${memberName}?\n\nThis will:\n• Reverse ${assignment.chore.points} points\n• Refund any recent reward claims\n• Allow the chore to be redone\n\nThis action is for quality control when chores are done poorly.`;
+      
+      if (!confirm(confirmMessage)) {
+        return;
+      }
     }
 
     try {
@@ -214,9 +222,17 @@ export default function ChoreCalendar({ currentUser }: ChoreCalendarProps) {
             text: `🎉 Chore completed and redeemed! You earned ${data.assignment?.chore?.points || 'some'} points!`
           });
         } else {
+          // Handle unchecking with potential refunds
+          const refundInfo = data.assignment?.refundInfo;
+          let message = `⚠️ Chore marked as incomplete due to poor quality. Points have been reversed.`;
+          
+          if (refundInfo && refundInfo.claimsRefunded > 0) {
+            message += ` ${refundInfo.claimsRefunded} reward claim(s) refunded: ${refundInfo.refundedRewards.join(', ')}. Net points lost: ${refundInfo.netPointsChange}.`;
+          }
+          
           setMessage({
             type: 'warning',
-            text: `⚠️ Chore marked as incomplete due to poor quality. Points have been reversed.`
+            text: message
           });
         }
 

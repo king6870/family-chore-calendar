@@ -143,55 +143,110 @@ export async function PATCH(
       }
     }
 
-    // If admin is unchecking a completed chore, reverse the points
+    // If admin is unchecking a completed chore, reverse the points and handle reward refunds
     if (!completed && assignment.completed && (user.isAdmin || user.isOwner) && assignment.userId !== user.id) {
       const pointsToReverse = assignment.bidPoints || assignment.chore.points;
+      let refundInfo: { claimsRefunded: number; refundedRewards: string[]; netPointsChange: number } = { 
+        claimsRefunded: 0, 
+        refundedRewards: [], 
+        netPointsChange: pointsToReverse 
+      };
       
-      // Find and delete the points earned record for this chore completion
       try {
-        await prisma.pointsEarned.deleteMany({
-          where: {
-            userId: assignment.userId,
-            familyId: assignment.familyId,
-            choreId: assignment.choreId,
-            points: pointsToReverse,
-            // Find the most recent points earned for this chore (in case of multiple completions)
-            date: {
-              gte: new Date(assignment.completedAt || assignment.date)
-            }
-          }
-        });
-
-        // Update user's total points (subtract the points)
-        await prisma.user.update({
-          where: { id: assignment.userId },
-          data: {
-            totalPoints: {
-              decrement: pointsToReverse
-            }
-          }
-        });
-
-        // Log the admin action (non-blocking)
-        try {
-          const adminName = user.nickname || user.name || 'Admin';
-          const memberName = assignment.user.nickname || 'Member';
-          
-          await prisma.activityLog.create({
-            data: {
-              userId: user.id, // Log under admin's ID
+        await prisma.$transaction(async (tx) => {
+          // Find and delete the points earned record for this chore completion
+          await tx.pointsEarned.deleteMany({
+            where: {
+              userId: assignment.userId,
               familyId: assignment.familyId,
-              action: 'admin_unchecked_chore',
-              details: `${adminName} marked "${assignment.chore.name}" as incomplete for ${memberName}. ${pointsToReverse} points reversed due to poor quality.`
+              choreId: assignment.choreId,
+              points: pointsToReverse,
+              // Find the most recent points earned for this chore (in case of multiple completions)
+              date: {
+                gte: new Date(assignment.completedAt || assignment.date)
+              }
             }
           });
-        } catch (logError) {
-          console.error('Failed to create admin action log:', logError);
-        }
+
+          // Check if user has any pending or approved reward claims that need to be refunded
+          // We'll refund claims in chronological order (oldest first) until we've covered the reversed points
+          const userClaims = await tx.rewardClaim.findMany({
+            where: {
+              userId: assignment.userId,
+              familyId: assignment.familyId,
+              status: { in: ['pending', 'approved'] },
+              claimedAt: {
+                gte: new Date(assignment.completedAt || assignment.date)
+              }
+            },
+            include: {
+              reward: { select: { title: true } }
+            },
+            orderBy: { claimedAt: 'asc' }
+          });
+
+          let pointsToRefund = 0;
+          const claimsToRefund = [];
+
+          // Calculate which claims need to be refunded
+          // We refund claims made after this chore was completed, up to the points being reversed
+          for (const claim of userClaims) {
+            if (pointsToRefund + claim.pointsSpent <= pointsToReverse) {
+              pointsToRefund += claim.pointsSpent;
+              claimsToRefund.push(claim);
+            } else {
+              // If we can't fully refund this claim with remaining points, stop here
+              break;
+            }
+          }
+
+          // Refund the claims by deleting them and restoring points
+          for (const claim of claimsToRefund) {
+            await tx.rewardClaim.delete({
+              where: { id: claim.id }
+            });
+          }
+
+          // Update refund info for response
+          refundInfo = {
+            claimsRefunded: claimsToRefund.length,
+            refundedRewards: claimsToRefund.map(c => c.reward.title),
+            netPointsChange: pointsToReverse - pointsToRefund
+          };
+
+          // Update user's total points (subtract reversed points, add back refunded points)
+          await tx.user.update({
+            where: { id: assignment.userId },
+            data: {
+              totalPoints: {
+                decrement: refundInfo.netPointsChange
+              }
+            }
+          });
+
+          // Log the admin action with refund details
+          const adminName = user.nickname || user.name || 'Admin';
+          const memberName = assignment.user?.nickname || 'Member';
+          const refundDetails = claimsToRefund.length > 0 
+            ? ` ${claimsToRefund.length} reward claim(s) refunded: ${claimsToRefund.map(c => c.reward.title).join(', ')}.`
+            : '';
+          
+          await tx.activityLog.create({
+            data: {
+              userId: user.id,
+              familyId: assignment.familyId,
+              action: 'admin_unchecked_chore',
+              details: `${adminName} marked "${assignment.chore.name}" as incomplete for ${memberName}. ${pointsToReverse} points reversed.${refundDetails} Net points change: -${refundInfo.netPointsChange}.`
+            }
+          });
+        });
       } catch (pointsError) {
-        console.error('Failed to reverse points:', pointsError);
-        // Continue with the assignment update even if points reversal fails
+        console.error('Failed to reverse points and handle refunds:', pointsError);
+        // Continue with the assignment update even if points/refund handling fails
       }
+
+      // Store refund info for response
+      (updatedAssignment as any).refundInfo = refundInfo;
     }
 
     return NextResponse.json({ assignment: updatedAssignment })
