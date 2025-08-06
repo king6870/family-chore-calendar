@@ -64,8 +64,8 @@ export async function POST(request: NextRequest) {
       where: { email: session.user.email }
     });
 
-    if (!user?.familyId || !user.isAdmin) {
-      return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+    if (!user?.familyId || (!user.isAdmin && !user.isOwner)) {
+      return NextResponse.json({ error: 'Admin or Owner access required' }, { status: 403 });
     }
 
     const { title, description, duration, pointsReward, assigneeId, tasks } = await request.json();

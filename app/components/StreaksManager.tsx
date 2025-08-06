@@ -63,7 +63,7 @@ export default function StreaksManager() {
   const [streaks, setStreaks] = useState<Streak[]>([]);
   const [familyMembers, setFamilyMembers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isAdminOrOwner, setIsAdminOrOwner] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
 
   // Create streak form state
@@ -113,7 +113,7 @@ export default function StreaksManager() {
       const response = await fetch('/api/user');
       if (response.ok) {
         const data = await response.json();
-        setIsAdmin(data.isAdmin);
+        setIsAdminOrOwner(data.isAdmin || data.isOwner);
       }
     } catch (error) {
       console.error('Error checking admin status:', error);
@@ -296,7 +296,7 @@ export default function StreaksManager() {
     <div className="max-w-6xl mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-900">🔥 Streaks</h1>
-        {isAdmin && (
+        {isAdminOrOwner && (
           <button
             onClick={() => setShowCreateForm(true)}
             className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium"
@@ -495,7 +495,7 @@ export default function StreaksManager() {
             <div className="text-6xl mb-4">🔥</div>
             <h3 className="text-xl font-medium text-gray-900 mb-2">No streaks yet</h3>
             <p className="text-gray-600">
-              {isAdmin ? 'Create your first streak to get started!' : 'Ask an admin to create a streak for you!'}
+              {isAdminOrOwner ? 'Create your first streak to get started!' : 'Ask an admin or owner to create a streak for you!'}
             </p>
           </div>
         ) : (
@@ -526,7 +526,7 @@ export default function StreaksManager() {
                       Start
                     </button>
                   )}
-                  {isAdmin && (
+                  {isAdminOrOwner && (
                     <button
                       onClick={() => deleteStreak(streak.id)}
                       className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm"

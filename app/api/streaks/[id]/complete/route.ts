@@ -55,8 +55,8 @@ export async function POST(
       return NextResponse.json({ error: 'Active streak not found' }, { status: 404 });
     }
 
-    // Only the assignee or admins can complete tasks
-    if (streak.assigneeId !== user.id && !user.isAdmin) {
+    // Only the assignee or admins/owners can complete tasks
+    if (streak.assigneeId !== user.id && !user.isAdmin && !user.isOwner) {
       return NextResponse.json({ error: 'You can only complete your own streak tasks' }, { status: 403 });
     }
 
@@ -79,9 +79,9 @@ export async function POST(
         completed,
         completedAt: completed ? new Date() : null,
         optionId: optionId || null,
-        // If admin is unchecking, record who did it
-        uncheckedBy: (!completed && user.isAdmin && streak.assigneeId !== user.id) ? user.id : null,
-        uncheckedAt: (!completed && user.isAdmin && streak.assigneeId !== user.id) ? new Date() : null
+        // If admin/owner is unchecking, record who did it
+        uncheckedBy: (!completed && (user.isAdmin || user.isOwner) && streak.assigneeId !== user.id) ? user.id : null,
+        uncheckedAt: (!completed && (user.isAdmin || user.isOwner) && streak.assigneeId !== user.id) ? new Date() : null
       }
     });
 
