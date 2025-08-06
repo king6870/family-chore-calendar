@@ -1,9 +1,11 @@
+// SQLite schema for Local Development (matches current codebase)
+
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -20,7 +22,8 @@ model Account {
   scope             String?
   id_token          String?
   session_state     String?
-  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -34,30 +37,31 @@ model Session {
 }
 
 model User {
-  id               String            @id @default(cuid())
-  name             String?
-  email            String?           @unique
-  emailVerified    DateTime?
-  image            String?
-  familyId         String?
-  birthdate        DateTime?         // Changed from age to birthdate
-  nickname         String?
-  isAdmin          Boolean           @default(false)
-  totalPoints      Int               @default(0)
-  isOwner          Boolean           @default(false)
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  accounts         Account[]
-  activityLogs     ActivityLog[]
-  auctionBids      AuctionBid[]
-  choreAssignments ChoreAssignment[]
-  pointsEarned     PointsEarned[]
-  sessions         Session[]
-  suggestions      Suggestion[]
-  createdRewards   Reward[]          @relation("RewardCreator")
-  rewardClaims     RewardClaim[]     @relation("RewardClaims")
-  approvedClaims   RewardClaim[]     @relation("RewardApprovals")
-  family           Family?           @relation(fields: [familyId], references: [id])
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  familyId      String?
+  birthdate     DateTime? // Current code expects birthdate, not age
+  nickname      String?
+  isAdmin       Boolean   @default(false)
+  isOwner       Boolean   @default(false)
+  totalPoints   Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts            Account[]
+  sessions            Session[]
+  family              Family?              @relation(fields: [familyId], references: [id])
+  choreAssignments    ChoreAssignment[]
+  pointsEarned        PointsEarned[]
+  auctionBids         AuctionBid[]
+  activityLogs        ActivityLog[]
+  suggestions         Suggestion[]
+  createdRewards      Reward[]             @relation("RewardCreator")
+  rewardClaims        RewardClaim[]        @relation("RewardClaims")
+  approvedClaims      RewardClaim[]        @relation("RewardApprovals")
 }
 
 model VerificationToken {
@@ -69,57 +73,60 @@ model VerificationToken {
 }
 
 model Family {
-  id               String            @id @default(cuid())
-  name             String
-  inviteCode       String            @unique
-  location         String?           // City, State/Country
-  timezone         String?           // IANA timezone identifier (e.g., "America/New_York")
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  auctions         Auction[]
-  auctionBids      AuctionBid[]
+  id         String   @id @default(cuid())
+  name       String
+  inviteCode String   @unique
+  location   String?  // Current code expects location
+  timezone   String?  // Current code expects timezone
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  members          User[]
   chores           Chore[]
   choreAssignments ChoreAssignment[]
   pointsEarned     PointsEarned[]
+  auctions         Auction[]
+  auctionBids      AuctionBid[]
+  activityLogs     ActivityLog[]
+  weeklyGoals      WeeklyGoal[]
   suggestions      Suggestion[]
   rewards          Reward[]
   rewardClaims     RewardClaim[]
-  members          User[]
-  weeklyGoals      WeeklyGoal[]
-  activityLogs     ActivityLog[]
 }
 
 model Chore {
-  id               String            @id @default(cuid())
-  name             String
-  description      String?
-  points           Int
-  minAge           Int?
-  difficulty       String            @default("medium")
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  familyId         String
-  basePoints       Int?
-  auctions         Auction[]
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  points      Int
+  minAge      Int?
+  difficulty  String   @default("medium")
+  familyId    String
+  basePoints  Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
   family           Family            @relation(fields: [familyId], references: [id], onDelete: Cascade)
   choreAssignments ChoreAssignment[]
+  auctions         Auction[]
 }
 
 model ChoreAssignment {
   id          String    @id @default(cuid())
+  userId      String
+  choreId     String
+  familyId    String
   date        DateTime
   dayOfWeek   String
   completed   Boolean   @default(false)
   completedAt DateTime?
+  bidPoints   Int?      // Current code expects bidPoints
   createdAt   DateTime  @default(now())
-  choreId     String
-  userId      String
-  familyId    String
-  bidPoints   Int?      // Points from auction bid (if assignment came from auction)
   updatedAt   DateTime  @updatedAt
-  chore       Chore     @relation(fields: [choreId], references: [id], onDelete: Cascade)
-  family      Family    @relation(fields: [familyId], references: [id], onDelete: Cascade)
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chore  Chore  @relation(fields: [choreId], references: [id], onDelete: Cascade)
+  family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
 
   @@unique([userId, choreId, date])
 }
@@ -133,24 +140,26 @@ model PointsEarned {
   userId    String
   familyId  String
   choreId   String?
-  family    Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Auction {
-  id          String       @id @default(cuid())
+  id          String    @id @default(cuid())
   choreId     String
   familyId    String
   weekStart   DateTime
   endTime     DateTime
-  status      String       @default("active")
+  status      String    @default("active")
   title       String?
   description String?
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  Chore       Chore        @relation(fields: [choreId], references: [id], onDelete: Cascade)
-  family      Family       @relation(fields: [familyId], references: [id], onDelete: Cascade)
-  bids        AuctionBid[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  Chore  Chore        @relation(fields: [choreId], references: [id], onDelete: Cascade)
+  family Family       @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  bids   AuctionBid[]
 
   @@unique([choreId, weekStart])
 }
@@ -163,33 +172,36 @@ model AuctionBid {
   bidPoints Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  auction   Auction  @relation(fields: [auctionId], references: [id], onDelete: Cascade)
-  family    Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  auction Auction @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  family  Family  @relation(fields: [familyId], references: [id], onDelete: Cascade)
 
   @@unique([auctionId, userId])
 }
 
 model ActivityLog {
   id        String   @id @default(cuid())
-  action    String
-  createdAt DateTime @default(now())
   userId    String
   familyId  String
+  action    String
   details   String?
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  family    Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
 }
 
 model WeeklyGoal {
   id        String   @id @default(cuid())
-  weekStart DateTime
-  createdAt DateTime @default(now())
   familyId  String
-  target    Int
-  updatedAt DateTime @updatedAt
+  weekStart DateTime
   goalType  String   @default("points")
-  family    Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  target    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  family Family @relation(fields: [familyId], references: [id], onDelete: Cascade)
 
   @@unique([familyId, weekStart])
 }
@@ -207,8 +219,9 @@ model Suggestion {
   familyId    String?
   userEmail   String?
   userName    String?
-  family      Family?  @relation(fields: [familyId], references: [id])
-  user        User?    @relation(fields: [userId], references: [id])
+
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  family Family? @relation(fields: [familyId], references: [id], onDelete: SetNull)
 }
 
 model Reward {
