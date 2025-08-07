@@ -259,7 +259,7 @@ export default function SettingsModal({
             </div>
           )}
 
-          {/* User Guide Tab */}
+          {/* User Guide Tab - Comprehensive documentation for all features */}
           {activeTab === 'guide' && (
             <div className="space-y-8">
               <div>
