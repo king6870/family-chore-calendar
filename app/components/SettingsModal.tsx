@@ -202,6 +202,7 @@ export default function SettingsModal({
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b">
           <h2 className="text-xl font-semibold text-gray-900">⚙️ Settings</h2>
+          <div className="text-xs text-gray-500">Current tab: {activeTab}</div>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 text-2xl"
