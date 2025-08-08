@@ -60,6 +60,138 @@ export async function GET(
   }
 }
 
+// PUT - Update a streak (Admin only, only if not started)
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email: session.user.email }
+    });
+
+    if (!user?.familyId) {
+      return NextResponse.json({ error: 'No family found' }, { status: 400 });
+    }
+
+    if (!user.isAdmin && !user.isOwner) {
+      return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+    }
+
+    // Check if streak exists and belongs to family
+    const existingStreak = await prisma.streak.findFirst({
+      where: { 
+        id: params.id,
+        familyId: user.familyId
+      }
+    });
+
+    if (!existingStreak) {
+      return NextResponse.json({ error: 'Streak not found' }, { status: 404 });
+    }
+
+    // Check if streak has been started (has active status)
+    if (existingStreak.status === 'active') {
+      return NextResponse.json({ error: 'Cannot edit an active streak' }, { status: 400 });
+    }
+
+    const body = await request.json();
+    const { title, description, duration, pointsReward, assigneeId, tasks } = body;
+
+    // Validate required fields
+    if (!title || !assigneeId || !tasks || tasks.length === 0) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    // Validate assignee belongs to family
+    const assignee = await prisma.user.findFirst({
+      where: { 
+        id: assigneeId,
+        familyId: user.familyId
+      }
+    });
+
+    if (!assignee) {
+      return NextResponse.json({ error: 'Invalid assignee' }, { status: 400 });
+    }
+
+    // Update streak in transaction
+    const updatedStreak = await prisma.$transaction(async (tx) => {
+      // Delete existing tasks and their options
+      await tx.streakTaskOption.deleteMany({
+        where: {
+          task: {
+            streakId: params.id
+          }
+        }
+      });
+
+      await tx.streakTask.deleteMany({
+        where: { streakId: params.id }
+      });
+
+      // Update the streak
+      const streak = await tx.streak.update({
+        where: { id: params.id },
+        data: {
+          title,
+          description,
+          duration,
+          pointsReward,
+          assigneeId
+        }
+      });
+
+      // Create new tasks
+      for (const task of tasks) {
+        const createdTask = await tx.streakTask.create({
+          data: {
+            streakId: streak.id,
+            title: task.title,
+            description: task.description,
+            isRequired: task.isRequired
+          }
+        });
+
+        // Create task options if any
+        if (task.options && task.options.length > 0) {
+          for (const option of task.options) {
+            await tx.streakTaskOption.create({
+              data: {
+                taskId: createdTask.id,
+                title: option.title,
+                description: option.description
+              }
+            });
+          }
+        }
+      }
+
+      return streak;
+    });
+
+    // Log the activity
+    await prisma.activityLog.create({
+      data: {
+        userId: user.id,
+        familyId: user.familyId,
+        action: 'STREAK_UPDATED',
+        details: `Updated streak "${title}"`
+      }
+    });
+
+    return NextResponse.json(updatedStreak);
+  } catch (error) {
+    console.error('Error updating streak:', error);
+    return NextResponse.json({ error: 'Failed to update streak' }, { status: 500 });
+  }
+}
+
 // DELETE - Delete a streak (Admin only)
 export async function DELETE(
   request: NextRequest,

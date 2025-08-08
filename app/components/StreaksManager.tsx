@@ -47,7 +47,7 @@ interface Streak {
   completedAt?: string;
   failedAt?: string;
   creator: { name: string; nickname?: string };
-  assignee: { name: string; nickname?: string };
+  assignee: { id: string; name: string; nickname?: string };
   tasks: StreakTask[];
   days: StreakDay[];
 }
@@ -65,6 +65,10 @@ export default function StreaksManager() {
   const [loading, setLoading] = useState(true);
   const [isAdminOrOwner, setIsAdminOrOwner] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [editingStreak, setEditingStreak] = useState<Streak | null>(null);
+  const [showViewForm, setShowViewForm] = useState(false);
+  const [viewingStreak, setViewingStreak] = useState<Streak | null>(null);
 
   // Create streak form state
   const [newStreak, setNewStreak] = useState({
@@ -151,6 +155,64 @@ export default function StreaksManager() {
       console.error('Error creating streak:', error);
       alert('Failed to create streak');
     }
+  };
+
+  const updateStreak = async () => {
+    if (!editingStreak) return;
+    
+    try {
+      const response = await fetch(`/api/streaks/${editingStreak.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newStreak)
+      });
+
+      if (response.ok) {
+        await fetchStreaks();
+        setShowEditForm(false);
+        setEditingStreak(null);
+        setNewStreak({
+          title: '',
+          description: '',
+          duration: 7,
+          pointsReward: 100,
+          assigneeId: '',
+          tasks: [{ title: '', description: '', isRequired: true, options: [] }]
+        });
+      } else {
+        const error = await response.json();
+        alert(`Error: ${error.error}`);
+      }
+    } catch (error) {
+      console.error('Error updating streak:', error);
+      alert('Failed to update streak');
+    }
+  };
+
+  const openEditForm = (streak: Streak) => {
+    setEditingStreak(streak);
+    setNewStreak({
+      title: streak.title,
+      description: streak.description || '',
+      duration: streak.duration,
+      pointsReward: streak.pointsReward,
+      assigneeId: streak.assignee.id,
+      tasks: streak.tasks.map(task => ({
+        title: task.title,
+        description: task.description || '',
+        isRequired: task.isRequired,
+        options: task.options.map(option => ({
+          title: option.title,
+          description: option.description || ''
+        }))
+      }))
+    });
+    setShowEditForm(true);
+  };
+
+  const openViewForm = (streak: Streak) => {
+    setViewingStreak(streak);
+    setShowViewForm(true);
   };
 
   const startStreak = async (streakId: string) => {
@@ -492,6 +554,347 @@ export default function StreaksManager() {
         </div>
       )}
 
+      {/* Edit Streak Form */}
+      {showEditForm && editingStreak && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <h2 className="text-xl font-bold mb-4">Edit Streak: {editingStreak.title}</h2>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Streak Title
+                </label>
+                <input
+                  type="text"
+                  value={newStreak.title}
+                  onChange={(e) => setNewStreak(prev => ({ ...prev, title: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  placeholder="Enter streak title"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Description
+                </label>
+                <textarea
+                  value={newStreak.description}
+                  onChange={(e) => setNewStreak(prev => ({ ...prev, description: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  rows={3}
+                  placeholder="Enter streak description"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Duration (days)
+                  </label>
+                  <input
+                    type="number"
+                    value={newStreak.duration}
+                    onChange={(e) => setNewStreak(prev => ({ ...prev, duration: parseInt(e.target.value) }))}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                    min="1"
+                    max="365"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Points Reward
+                  </label>
+                  <input
+                    type="number"
+                    value={newStreak.pointsReward}
+                    onChange={(e) => setNewStreak(prev => ({ ...prev, pointsReward: parseInt(e.target.value) }))}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2"
+                    min="1"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Assign to Family Member
+                </label>
+                <select
+                  value={newStreak.assigneeId}
+                  onChange={(e) => setNewStreak(prev => ({ ...prev, assigneeId: e.target.value }))}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                >
+                  <option value="">Select family member</option>
+                  {(familyMembers || []).map(member => (
+                    <option key={member.id} value={member.id}>
+                      {member.nickname || member.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Daily Tasks
+                </label>
+                {(newStreak.tasks || []).map((task, taskIndex) => (
+                  <div key={taskIndex} className="border border-gray-200 rounded-lg p-4 mb-4">
+                    <div className="flex justify-between items-start mb-3">
+                      <h4 className="font-medium">Task {taskIndex + 1}</h4>
+                      <button
+                        onClick={() => removeTask(taskIndex)}
+                        className="text-red-500 hover:text-red-700 text-sm"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <input
+                        type="text"
+                        value={task.title}
+                        onChange={(e) => updateTask(taskIndex, 'title', e.target.value)}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2"
+                        placeholder="Task title"
+                      />
+                      
+                      <textarea
+                        value={task.description}
+                        onChange={(e) => updateTask(taskIndex, 'description', e.target.value)}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2"
+                        rows={2}
+                        placeholder="Task description (optional)"
+                      />
+                      
+                      <label className="flex items-center">
+                        <input
+                          type="checkbox"
+                          checked={task.isRequired}
+                          onChange={(e) => updateTask(taskIndex, 'isRequired', e.target.checked)}
+                          className="mr-2"
+                        />
+                        Required task (streak fails if not completed)
+                      </label>
+
+                      <div>
+                        <div className="flex justify-between items-center mb-2">
+                          <label className="text-sm font-medium text-gray-700">
+                            Task Options (choose one)
+                          </label>
+                          <button
+                            onClick={() => addTaskOption(taskIndex)}
+                            className="text-blue-500 hover:text-blue-700 text-sm"
+                          >
+                            + Add Option
+                          </button>
+                        </div>
+                        
+                        {(task.options || []).map((option, optionIndex) => (
+                          <div key={optionIndex} className="flex gap-2 mb-2">
+                            <input
+                              type="text"
+                              value={option.title}
+                              onChange={(e) => updateTaskOption(taskIndex, optionIndex, 'title', e.target.value)}
+                              className="flex-1 border border-gray-300 rounded-md px-3 py-1 text-sm"
+                              placeholder="Option title"
+                            />
+                            <input
+                              type="text"
+                              value={option.description}
+                              onChange={(e) => updateTaskOption(taskIndex, optionIndex, 'description', e.target.value)}
+                              className="flex-1 border border-gray-300 rounded-md px-3 py-1 text-sm"
+                              placeholder="Option description"
+                            />
+                            <button
+                              onClick={() => removeTaskOption(taskIndex, optionIndex)}
+                              className="text-red-500 hover:text-red-700 text-sm px-2"
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                
+                <button
+                  onClick={addTask}
+                  className="w-full border-2 border-dashed border-gray-300 rounded-lg p-4 text-gray-500 hover:border-gray-400 hover:text-gray-600"
+                >
+                  + Add Task
+                </button>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 mt-6">
+              <button
+                onClick={() => {
+                  setShowEditForm(false);
+                  setEditingStreak(null);
+                }}
+                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={updateStreak}
+                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg"
+                disabled={!newStreak.title || !newStreak.assigneeId || (newStreak.tasks || []).some(t => !t.title)}
+              >
+                Update Streak
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* View Streak Modal (for active streaks) */}
+      {showViewForm && viewingStreak && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <h2 className="text-xl font-bold mb-4">View Streak: {viewingStreak.title}</h2>
+            <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-yellow-800 text-sm">
+                ⚠️ This streak is {viewingStreak.status} and cannot be edited. You can only view its details.
+              </p>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Streak Title
+                </label>
+                <div className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-50">
+                  {viewingStreak.title}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Description
+                </label>
+                <div className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-50 min-h-[80px]">
+                  {viewingStreak.description || 'No description'}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Duration (days)
+                  </label>
+                  <div className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-50">
+                    {viewingStreak.duration}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Points Reward
+                  </label>
+                  <div className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-50">
+                    {viewingStreak.pointsReward}
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Assigned to
+                </label>
+                <div className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-50">
+                  {viewingStreak.assignee.nickname || viewingStreak.assignee.name}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Status
+                </label>
+                <div className="w-full border border-gray-300 rounded-md px-3 py-2 bg-gray-50">
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(viewingStreak.status)}`}>
+                    {viewingStreak.status}
+                  </span>
+                  {viewingStreak.status === 'active' && (
+                    <span className="ml-2 text-sm text-gray-600">
+                      Day {viewingStreak.currentDay} of {viewingStreak.duration}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Daily Tasks
+                </label>
+                {viewingStreak.tasks.map((task, taskIndex) => (
+                  <div key={task.id} className="border border-gray-200 rounded-lg p-4 mb-4 bg-gray-50">
+                    <div className="mb-3">
+                      <h4 className="font-medium">Task {taskIndex + 1}</h4>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Title</label>
+                        <div className="text-sm">{task.title}</div>
+                      </div>
+                      
+                      {task.description && (
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Description</label>
+                          <div className="text-sm">{task.description}</div>
+                        </div>
+                      )}
+                      
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Type</label>
+                        <div className="text-sm">
+                          {task.isRequired ? (
+                            <span className="text-red-600 font-medium">Required</span>
+                          ) : (
+                            <span className="text-green-600 font-medium">Optional</span>
+                          )}
+                        </div>
+                      </div>
+
+                      {task.options.length > 0 && (
+                        <div>
+                          <label className="block text-xs font-medium text-gray-600 mb-1">Options</label>
+                          <div className="space-y-1">
+                            {task.options.map((option, optionIndex) => (
+                              <div key={option.id} className="text-sm bg-white p-2 rounded border">
+                                <div className="font-medium">{option.title}</div>
+                                {option.description && (
+                                  <div className="text-gray-600 text-xs">{option.description}</div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex justify-end mt-6">
+              <button
+                onClick={() => {
+                  setShowViewForm(false);
+                  setViewingStreak(null);
+                }}
+                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Streaks List */}
       <div className="space-y-6">
         {(streaks || []).length === 0 ? (
@@ -531,12 +934,29 @@ export default function StreaksManager() {
                     </button>
                   )}
                   {isAdminOrOwner && (
-                    <button
-                      onClick={() => deleteStreak(streak.id)}
-                      className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm"
-                    >
-                      Delete
-                    </button>
+                    <>
+                      {streak.status === 'pending' ? (
+                        <button
+                          onClick={() => openEditForm(streak)}
+                          className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
+                        >
+                          Edit
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => openViewForm(streak)}
+                          className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded text-sm"
+                        >
+                          View
+                        </button>
+                      )}
+                      <button
+                        onClick={() => deleteStreak(streak.id)}
+                        className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm"
+                      >
+                        Delete
+                      </button>
+                    </>
                   )}
                 </div>
               </div>
