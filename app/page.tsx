@@ -418,6 +418,7 @@ export default function Home() {
               family={family}
               onFamilyCreated={fetchUserData}
               onRefresh={fetchUserData}
+              showAdminActions={false}
             />
           )}
           {/* Admin Section */}

@@ -30,13 +30,15 @@ interface FamilyManagerEnhancedProps {
   family: { id: string; name: string; inviteCode: string } | null
   onFamilyCreated: () => void
   onRefresh: () => void
+  showAdminActions?: boolean // New prop to control admin actions visibility
 }
 
 export default function FamilyManagerEnhanced({ 
   currentUser, 
   family, 
   onFamilyCreated, 
-  onRefresh 
+  onRefresh,
+  showAdminActions = true // Default to true for backward compatibility
 }: FamilyManagerEnhancedProps) {
   const { data: session } = useSession()
   const [activeTab, setActiveTab] = useState<'overview' | 'members' | 'chores' | 'create-join'>('overview')
@@ -639,6 +641,7 @@ export default function FamilyManagerEnhanced({
           currentUser={currentUser}
           onMemberAction={handleMemberAction}
           loading={loading}
+          showAdminActions={showAdminActions}
         />
       )}
 
@@ -752,12 +755,14 @@ function MembersManagement({
   members, 
   currentUser, 
   onMemberAction, 
-  loading 
+  loading,
+  showAdminActions = true
 }: {
   members: User[]
   currentUser: User
   onMemberAction: (action: string, targetUserId: string, newOwnerId?: string) => void
   loading: boolean
+  showAdminActions?: boolean
 }) {
   const [selectedNewOwner, setSelectedNewOwner] = useState('')
 
@@ -781,7 +786,7 @@ function MembersManagement({
                 </div>
               </div>
               
-              {member.id !== currentUser.id && (
+              {member.id !== currentUser.id && showAdminActions && (
                 <div className="flex flex-wrap gap-2">
                   {currentUser.isOwner && (
                     <>
