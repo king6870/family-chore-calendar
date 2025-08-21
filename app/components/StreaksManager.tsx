@@ -253,6 +253,46 @@ export default function StreaksManager() {
     }
   };
 
+  const restartStreak = async (streakId: string) => {
+    if (!confirm('Are you sure you want to restart this streak? This will reset all progress.')) return;
+
+    try {
+      const response = await fetch(`/api/streaks/${streakId}/restart`, {
+        method: 'POST'
+      });
+
+      if (response.ok) {
+        await fetchStreaks();
+      } else {
+        const error = await response.json();
+        alert(`Error: ${error.error}`);
+      }
+    } catch (error) {
+      console.error('Error restarting streak:', error);
+      alert('Failed to restart streak');
+    }
+  };
+
+  const stopStreak = async (streakId: string) => {
+    if (!confirm('Are you sure you want to stop this streak? This will mark it as failed.')) return;
+
+    try {
+      const response = await fetch(`/api/streaks/${streakId}/stop`, {
+        method: 'POST'
+      });
+
+      if (response.ok) {
+        await fetchStreaks();
+      } else {
+        const error = await response.json();
+        alert(`Error: ${error.error}`);
+      }
+    } catch (error) {
+      console.error('Error stopping streak:', error);
+      alert('Failed to stop streak');
+    }
+  };
+
   const deleteStreak = async (streakId: string) => {
     if (!confirm('Are you sure you want to delete this streak?')) return;
 
@@ -361,7 +401,14 @@ export default function StreaksManager() {
   return (
     <div className="max-w-6xl mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">🔥 Streaks</h1>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">🔥 Streaks</h1>
+          {isAdminOrOwner && (
+            <p className="text-sm text-gray-600 mt-1">
+              As an admin, you can create, edit, stop, restart, and delete all family streaks
+            </p>
+          )}
+        </div>
         {isAdminOrOwner && (
           <button
             onClick={() => setShowCreateForm(true)}
@@ -559,6 +606,51 @@ export default function StreaksManager() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold mb-4">Edit Streak: {editingStreak.title}</h2>
+            
+            {/* Warning for active streaks */}
+            {editingStreak.status === 'active' && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                <div className="flex items-center">
+                  <span className="text-2xl mr-3">⚠️</span>
+                  <div>
+                    <h4 className="font-medium text-yellow-800">Editing Active Streak</h4>
+                    <p className="text-yellow-600 text-sm">
+                      This streak is currently active. Changes may affect the user's progress.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Warning for completed streaks */}
+            {editingStreak.status === 'completed' && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                <div className="flex items-center">
+                  <span className="text-2xl mr-3">ℹ️</span>
+                  <div>
+                    <h4 className="font-medium text-blue-800">Editing Completed Streak</h4>
+                    <p className="text-blue-600 text-sm">
+                      This streak has been completed. Consider restarting instead of editing.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Warning for failed streaks */}
+            {editingStreak.status === 'failed' && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                <div className="flex items-center">
+                  <span className="text-2xl mr-3">🔄</span>
+                  <div>
+                    <h4 className="font-medium text-red-800">Editing Failed Streak</h4>
+                    <p className="text-red-600 text-sm">
+                      This streak has failed. Consider restarting to give it another try.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
             
             <div className="space-y-4">
               <div>
@@ -924,37 +1016,68 @@ export default function StreaksManager() {
                   </div>
                 </div>
 
-                <div className="flex gap-2">
-                  {streak.status === 'pending' && (
+                <div className="flex gap-2 flex-wrap">
+                  {/* User Actions */}
+                  {streak.assignee.id === session?.user?.id && streak.status === 'pending' && (
                     <button
                       onClick={() => startStreak(streak.id)}
                       className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm"
+                      title="Start this streak"
                     >
-                      Start
+                      ▶️ Start
                     </button>
                   )}
+
+                  {/* Admin Actions */}
                   {isAdminOrOwner && (
                     <>
-                      {streak.status === 'pending' ? (
+                      {/* Edit - Available for any status */}
+                      <button
+                        onClick={() => openEditForm(streak)}
+                        className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
+                        title="Edit streak details, tasks, and settings"
+                      >
+                        ✏️ Edit
+                      </button>
+
+                      {/* View Details */}
+                      <button
+                        onClick={() => openViewForm(streak)}
+                        className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded text-sm"
+                        title="View detailed streak information"
+                      >
+                        👁️ View
+                      </button>
+
+                      {/* Stop Active Streak */}
+                      {streak.status === 'active' && (
                         <button
-                          onClick={() => openEditForm(streak)}
-                          className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
+                          onClick={() => stopStreak(streak.id)}
+                          className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded text-sm"
+                          title="Stop this active streak (marks as failed)"
                         >
-                          Edit
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => openViewForm(streak)}
-                          className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded text-sm"
-                        >
-                          View
+                          ⏹️ Stop
                         </button>
                       )}
+
+                      {/* Restart Failed/Completed Streak */}
+                      {(streak.status === 'failed' || streak.status === 'completed') && (
+                        <button
+                          onClick={() => restartStreak(streak.id)}
+                          className="bg-purple-500 hover:bg-purple-600 text-white px-3 py-1 rounded text-sm"
+                          title="Reset and restart this streak from day 1"
+                        >
+                          🔄 Restart
+                        </button>
+                      )}
+
+                      {/* Delete Streak */}
                       <button
                         onClick={() => deleteStreak(streak.id)}
                         className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm"
+                        title="Permanently delete this streak"
                       >
-                        Delete
+                        🗑️ Delete
                       </button>
                     </>
                   )}
@@ -1037,6 +1160,11 @@ export default function StreaksManager() {
                         Completed on {new Date(streak.completedAt!).toLocaleDateString()} • 
                         Earned {streak.pointsReward} points
                       </p>
+                      {isAdminOrOwner && (
+                        <p className="text-green-500 text-sm mt-1">
+                          Click "Restart" to do this streak again
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1047,10 +1175,21 @@ export default function StreaksManager() {
                   <div className="flex items-center">
                     <span className="text-2xl mr-3">💔</span>
                     <div>
-                      <h4 className="font-medium text-red-800">Streak Failed</h4>
+                      <h4 className="font-medium text-red-800">
+                        {streak.failedAt && new Date(streak.failedAt).toDateString() === new Date().toDateString() 
+                          ? 'Streak Stopped by Admin' 
+                          : 'Streak Failed'}
+                      </h4>
                       <p className="text-red-600">
-                        Failed on {new Date(streak.failedAt!).toLocaleDateString()}
+                        {streak.failedAt && new Date(streak.failedAt).toDateString() === new Date().toDateString()
+                          ? `Stopped on ${new Date(streak.failedAt).toLocaleDateString()}`
+                          : `Failed on ${new Date(streak.failedAt!).toLocaleDateString()}`}
                       </p>
+                      {isAdminOrOwner && (
+                        <p className="text-red-500 text-sm mt-1">
+                          Click "Restart" to give another chance
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>

@@ -60,7 +60,7 @@ export async function GET(
   }
 }
 
-// PUT - Update a streak (Admin only, only if not started)
+// PUT - Update a streak (Admin only, can edit any status)
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -95,10 +95,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Streak not found' }, { status: 404 });
     }
 
-    // Check if streak has been started (has active status)
-    if (existingStreak.status === 'active') {
-      return NextResponse.json({ error: 'Cannot edit an active streak' }, { status: 400 });
-    }
+    // Admins can now edit streaks in any status
 
     const body = await request.json();
     const { title, description, duration, pointsReward, assigneeId, tasks } = body;
