@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
-// POST - Restart a failed streak (Admin only)
+// POST - Restart a failed/completed streak (Admin only)
 export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -22,6 +22,10 @@ export async function POST(
       return NextResponse.json({ error: 'Admin or Owner access required' }, { status: 403 });
     }
 
+    // Get restart options from request body
+    const body = await request.json().catch(() => ({}));
+    const { fromDay, resetCompletely } = body;
+
     const streak = await prisma.streak.findFirst({
       where: { 
         id: params.id,
@@ -29,7 +33,13 @@ export async function POST(
       },
       include: {
         tasks: true,
-        assignee: { select: { name: true, nickname: true } }
+        assignee: { select: { name: true, nickname: true } },
+        days: {
+          include: {
+            taskCompletions: true
+          },
+          orderBy: { dayNumber: 'asc' }
+        }
       }
     });
 
@@ -45,35 +55,124 @@ export async function POST(
     }
 
     const now = new Date();
-    
-    // Reset streak to pending status
+    let restartDay = 1;
+    let actionType = 'restarted_streak';
+    let actionDetails = `Restarted streak "${streak.title}" for ${streak.assignee.nickname || streak.assignee.name}`;
+
+    // Determine restart strategy
+    if (resetCompletely) {
+      // Complete reset to day 1
+      restartDay = 1;
+      actionDetails += ' from day 1';
+    } else if (fromDay && fromDay >= 1 && fromDay <= streak.duration) {
+      // Restart from specific day
+      restartDay = fromDay;
+      actionDetails += ` from day ${fromDay}`;
+      actionType = 'restarted_streak_from_day';
+    } else if (streak.status === 'failed' && streak.currentDay > 1) {
+      // Default: restart from the day it failed
+      restartDay = streak.currentDay;
+      actionDetails += ` from day ${streak.currentDay} (where it failed)`;
+      actionType = 'restarted_streak_from_failure_day';
+    } else {
+      // Fallback to day 1
+      restartDay = 1;
+      actionDetails += ' from day 1';
+    }
+
+    // Restart streak logic
     const restartedStreak = await prisma.$transaction(async (tx) => {
-      // Delete existing days and task completions
-      await tx.streakTaskCompletion.deleteMany({
-        where: {
-          day: {
-            streakId: params.id
+      if (resetCompletely || restartDay === 1) {
+        // Complete reset: delete all days and task completions
+        await tx.streakTaskCompletion.deleteMany({
+          where: {
+            day: {
+              streakId: params.id
+            }
           }
+        });
+
+        await tx.streakDay.deleteMany({
+          where: { streakId: params.id }
+        });
+
+        // Reset streak to pending
+        const updated = await tx.streak.update({
+          where: { id: params.id },
+          data: {
+            status: 'pending',
+            currentDay: 0,
+            startedAt: null,
+            completedAt: null,
+            failedAt: null
+          }
+        });
+
+        return updated;
+      } else {
+        // Partial restart: keep completed days before restart point
+        
+        // Delete days and completions from restart day onwards
+        const daysToDelete = streak.days.filter(d => d.dayNumber >= restartDay);
+        const dayIdsToDelete = daysToDelete.map(d => d.id);
+
+        if (dayIdsToDelete.length > 0) {
+          await tx.streakTaskCompletion.deleteMany({
+            where: {
+              dayId: {
+                in: dayIdsToDelete
+              }
+            }
+          });
+
+          await tx.streakDay.deleteMany({
+            where: {
+              id: {
+                in: dayIdsToDelete
+              }
+            }
+          });
         }
-      });
 
-      await tx.streakDay.deleteMany({
-        where: { streakId: params.id }
-      });
+        // Update streak to active status, set current day to restart point
+        const updated = await tx.streak.update({
+          where: { id: params.id },
+          data: {
+            status: 'active',
+            currentDay: restartDay,
+            startedAt: streak.startedAt || now, // Keep original start time if exists
+            completedAt: null,
+            failedAt: null
+          }
+        });
 
-      // Reset streak to pending
-      const updated = await tx.streak.update({
-        where: { id: params.id },
-        data: {
-          status: 'pending',
-          currentDay: 0,
-          startedAt: null,
-          completedAt: null,
-          failedAt: null
-        }
-      });
+        // Create the restart day and its task completions
+        const restartDate = new Date(now);
+        restartDate.setDate(now.getDate() + (restartDay - streak.currentDay)); // Adjust date appropriately
 
-      return updated;
+        const newDay = await tx.streakDay.create({
+          data: {
+            dayNumber: restartDay,
+            date: restartDate,
+            streakId: streak.id,
+            userId: streak.assigneeId,
+            completed: false
+          }
+        });
+
+        // Create task completions for the restart day
+        const taskCompletions = streak.tasks.map(task => ({
+          taskId: task.id,
+          dayId: newDay.id,
+          completed: false
+        }));
+
+        await tx.streakTaskCompletion.createMany({
+          data: taskCompletions
+        });
+
+        return updated;
+      }
     });
 
     // Log activity
@@ -81,12 +180,16 @@ export async function POST(
       data: {
         userId: user.id,
         familyId: user.familyId,
-        action: 'restarted_streak',
-        details: `Restarted streak "${streak.title}" for ${streak.assignee.nickname || streak.assignee.name}`
+        action: actionType,
+        details: actionDetails
       }
     });
 
-    return NextResponse.json(restartedStreak);
+    return NextResponse.json({
+      ...restartedStreak,
+      restartedFromDay: restartDay,
+      message: `Streak restarted from day ${restartDay}`
+    });
   } catch (error) {
     console.error('Error restarting streak:', error);
     return NextResponse.json({ error: 'Failed to restart streak' }, { status: 500 });

@@ -70,6 +70,13 @@ export default function StreaksManager() {
   const [showViewForm, setShowViewForm] = useState(false);
   const [viewingStreak, setViewingStreak] = useState<Streak | null>(null);
 
+  const [showRestartModal, setShowRestartModal] = useState(false);
+  const [restartingStreak, setRestartingStreak] = useState<Streak | null>(null);
+  const [restartOptions, setRestartOptions] = useState({
+    fromDay: 1,
+    resetCompletely: false
+  });
+
   // Create streak form state
   const [newStreak, setNewStreak] = useState({
     title: '',
@@ -253,16 +260,35 @@ export default function StreaksManager() {
     }
   };
 
-  const restartStreak = async (streakId: string) => {
-    if (!confirm('Are you sure you want to restart this streak? This will reset all progress.')) return;
+  const openRestartModal = (streak: Streak) => {
+    setRestartingStreak(streak);
+    // Set default restart day based on streak status
+    const defaultDay = streak.status === 'failed' && streak.currentDay > 1 
+      ? streak.currentDay 
+      : 1;
+    setRestartOptions({
+      fromDay: defaultDay,
+      resetCompletely: false
+    });
+    setShowRestartModal(true);
+  };
+
+  const restartStreak = async () => {
+    if (!restartingStreak) return;
 
     try {
-      const response = await fetch(`/api/streaks/${streakId}/restart`, {
-        method: 'POST'
+      const response = await fetch(`/api/streaks/${restartingStreak.id}/restart`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(restartOptions)
       });
 
       if (response.ok) {
+        const result = await response.json();
         await fetchStreaks();
+        setShowRestartModal(false);
+        setRestartingStreak(null);
+        alert(`✅ ${result.message || 'Streak restarted successfully!'}`);
       } else {
         const error = await response.json();
         alert(`Error: ${error.error}`);
@@ -987,6 +1013,143 @@ export default function StreaksManager() {
         </div>
       )}
 
+      {/* Restart Options Modal */}
+      {showRestartModal && restartingStreak && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h2 className="text-xl font-bold mb-4">🔄 Restart Streak Options</h2>
+            
+            <div className="mb-4">
+              <h3 className="font-medium text-gray-900 mb-2">{restartingStreak.title}</h3>
+              <div className="text-sm text-gray-600 space-y-1">
+                <p>👤 Assigned to: {restartingStreak.assignee.nickname || restartingStreak.assignee.name}</p>
+                <p>📅 Duration: {restartingStreak.duration} days</p>
+                <p>📊 Status: <span className={`px-2 py-1 rounded text-xs ${getStatusColor(restartingStreak.status)}`}>
+                  {restartingStreak.status}
+                </span></p>
+                {restartingStreak.status === 'failed' && (
+                  <p>💔 Failed on day: {restartingStreak.currentDay}</p>
+                )}
+                {restartingStreak.status === 'completed' && (
+                  <p>🎉 Completed all {restartingStreak.duration} days</p>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Restart Options
+                </label>
+                
+                <div className="space-y-3">
+                  {/* Complete Reset Option */}
+                  <label className="flex items-start space-x-3">
+                    <input
+                      type="radio"
+                      name="restartType"
+                      checked={restartOptions.resetCompletely}
+                      onChange={() => setRestartOptions(prev => ({ 
+                        ...prev, 
+                        resetCompletely: true,
+                        fromDay: 1 
+                      }))}
+                      className="mt-1"
+                    />
+                    <div>
+                      <div className="font-medium">🔄 Complete Reset</div>
+                      <div className="text-sm text-gray-600">
+                        Start over from day 1 (clears all progress)
+                      </div>
+                    </div>
+                  </label>
+
+                  {/* Smart Restart Option */}
+                  <label className="flex items-start space-x-3">
+                    <input
+                      type="radio"
+                      name="restartType"
+                      checked={!restartOptions.resetCompletely}
+                      onChange={() => setRestartOptions(prev => ({ 
+                        ...prev, 
+                        resetCompletely: false 
+                      }))}
+                      className="mt-1"
+                    />
+                    <div className="flex-1">
+                      <div className="font-medium">🎯 Smart Restart</div>
+                      <div className="text-sm text-gray-600 mb-2">
+                        Restart from a specific day (keeps previous progress)
+                      </div>
+                      
+                      {!restartOptions.resetCompletely && (
+                        <div className="ml-4">
+                          <label className="block text-xs font-medium text-gray-600 mb-1">
+                            Restart from day:
+                          </label>
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="number"
+                              min="1"
+                              max={restartingStreak.duration}
+                              value={restartOptions.fromDay}
+                              onChange={(e) => setRestartOptions(prev => ({ 
+                                ...prev, 
+                                fromDay: parseInt(e.target.value) || 1 
+                              }))}
+                              className="w-20 border border-gray-300 rounded px-2 py-1 text-sm"
+                            />
+                            <span className="text-sm text-gray-500">
+                              (1 to {restartingStreak.duration})
+                            </span>
+                          </div>
+                          
+                          {restartingStreak.status === 'failed' && restartOptions.fromDay === restartingStreak.currentDay && (
+                            <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
+                              💡 This will restart from the day it failed, giving another chance at that day
+                            </div>
+                          )}
+                          
+                          {restartOptions.fromDay < restartingStreak.currentDay && restartingStreak.status === 'failed' && (
+                            <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-700">
+                              ⚠️ This will restart from an earlier day, losing some completed progress
+                            </div>
+                          )}
+                          
+                          {restartingStreak.status === 'completed' && restartOptions.fromDay < restartingStreak.duration && (
+                            <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded text-xs text-green-700">
+                              🎯 This will restart from day {restartOptions.fromDay}, keeping days 1-{restartOptions.fromDay - 1} completed
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => {
+                  setShowRestartModal(false);
+                  setRestartingStreak(null);
+                }}
+                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={restartStreak}
+                className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg font-medium"
+              >
+                🔄 Restart Streak
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Streaks List */}
       <div className="space-y-6">
         {(streaks || []).length === 0 ? (
@@ -1063,9 +1226,9 @@ export default function StreaksManager() {
                       {/* Restart Failed/Completed Streak */}
                       {(streak.status === 'failed' || streak.status === 'completed') && (
                         <button
-                          onClick={() => restartStreak(streak.id)}
+                          onClick={() => openRestartModal(streak)}
                           className="bg-purple-500 hover:bg-purple-600 text-white px-3 py-1 rounded text-sm"
-                          title="Reset and restart this streak from day 1"
+                          title="Reset and restart this streak from a specific day"
                         >
                           🔄 Restart
                         </button>
@@ -1085,18 +1248,30 @@ export default function StreaksManager() {
               </div>
 
               {/* Progress Bar */}
-              {streak.status === 'active' && (
+              {(streak.status === 'active' || streak.status === 'failed') && (
                 <div className="mb-4">
                   <div className="flex justify-between text-sm text-gray-600 mb-1">
                     <span>Progress</span>
-                    <span>Day {streak.currentDay} of {streak.duration}</span>
+                    <span>
+                      Day {streak.currentDay} of {streak.duration}
+                      {streak.status === 'failed' && (
+                        <span className="text-red-500 ml-1">(Failed here)</span>
+                      )}
+                    </span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div 
-                      className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                      className={`h-2 rounded-full transition-all duration-300 ${
+                        streak.status === 'failed' ? 'bg-red-500' : 'bg-blue-500'
+                      }`}
                       style={{ width: `${(streak.currentDay / streak.duration) * 100}%` }}
                     ></div>
                   </div>
+                  {streak.status === 'failed' && isAdminOrOwner && (
+                    <div className="mt-2 text-xs text-gray-600">
+                      💡 Click "Restart" to continue from day {streak.currentDay} or start over
+                    </div>
+                  )}
                 </div>
               )}
 
