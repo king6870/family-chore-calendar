@@ -94,6 +94,15 @@ export default function StreaksManager() {
     checkAdminStatus();
   }, []);
 
+  // Debug: Monitor newStreak state changes
+  useEffect(() => {
+    console.log('🔄 newStreak state changed:', {
+      title: newStreak.title,
+      assigneeId: newStreak.assigneeId,
+      hasAssignee: !!newStreak.assigneeId
+    });
+  }, [newStreak]);
+
   const fetchStreaks = async () => {
     try {
       const response = await fetch('/api/streaks');
@@ -109,19 +118,32 @@ export default function StreaksManager() {
   };
 
   const fetchFamilyMembers = async () => {
+    console.log('🔍 Fetching family members...');
     try {
       const response = await fetch('/api/family/members');
+      console.log('📡 Family members API response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
-        console.log('Fetched family members:', data); // Debug log
-        setFamilyMembers(data || []); // Ensure it's always an array
+        console.log('👥 Fetched family members:', data);
+        console.log('📊 Family members count:', data?.length || 0);
+        
+        if (Array.isArray(data) && data.length > 0) {
+          setFamilyMembers(data);
+          console.log('✅ Family members set successfully');
+        } else {
+          console.warn('⚠️ No family members found or invalid data format');
+          setFamilyMembers([]);
+        }
       } else {
-        console.error('Failed to fetch family members:', response.status);
-        setFamilyMembers([]); // Set empty array on error
+        console.error('❌ Failed to fetch family members:', response.status, response.statusText);
+        const errorText = await response.text();
+        console.error('Error details:', errorText);
+        setFamilyMembers([]);
       }
     } catch (error) {
-      console.error('Error fetching family members:', error);
-      setFamilyMembers([]); // Set empty array on error
+      console.error('💥 Error fetching family members:', error);
+      setFamilyMembers([]);
     }
   };
 
@@ -479,10 +501,14 @@ export default function StreaksManager() {
             
             {/* Debug Information */}
             <div className="mb-4 p-3 bg-gray-100 rounded text-xs">
-              <strong>Debug Info:</strong><br/>
+              <strong>🔍 Debug Info:</strong><br/>
               Family Members Count: {familyMembers.length}<br/>
-              Selected Assignee ID: {newStreak.assigneeId || 'None'}<br/>
-              Family Members: {familyMembers.map(m => `${m.nickname || m.name} (${m.id})`).join(', ')}
+              Selected Assignee ID: "{newStreak.assigneeId}" {newStreak.assigneeId ? '✅' : '❌'}<br/>
+              Family Members: {familyMembers.length > 0 ? familyMembers.map(m => `${m.nickname || m.name} (${m.id.substring(0, 8)}...)`).join(', ') : 'None loaded'}<br/>
+              Form State Valid: {newStreak.title && newStreak.assigneeId ? '✅' : '❌'}<br/>
+              {newStreak.assigneeId && (
+                <>Selected Member: {familyMembers.find(m => m.id === newStreak.assigneeId)?.nickname || familyMembers.find(m => m.id === newStreak.assigneeId)?.name || 'Not found'}<br/></>
+              )}
             </div>
             
             <div className="space-y-4">
@@ -534,12 +560,36 @@ export default function StreaksManager() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Assign to</label>
+                <div className="flex justify-between items-center mb-1">
+                  <label className="block text-sm font-medium text-gray-700">Assign to</label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      console.log('🔄 Manual refresh of family members');
+                      fetchFamilyMembers();
+                    }}
+                    className="text-xs text-blue-600 hover:text-blue-800"
+                  >
+                    🔄 Refresh Members
+                  </button>
+                </div>
                 <select
                   value={newStreak.assigneeId}
                   onChange={(e) => {
-                    console.log('Selected assignee:', e.target.value); // Debug log
-                    setNewStreak(prev => ({ ...prev, assigneeId: e.target.value }));
+                    const selectedId = e.target.value;
+                    console.log('🎯 User selected assignee ID:', selectedId);
+                    console.log('👥 Available family members:', familyMembers.map(m => ({ id: m.id, name: m.name, nickname: m.nickname })));
+                    
+                    setNewStreak(prev => {
+                      const updated = { ...prev, assigneeId: selectedId };
+                      console.log('📝 Updated newStreak state:', updated);
+                      return updated;
+                    });
+                    
+                    // Verify the selection
+                    setTimeout(() => {
+                      console.log('⏰ After state update - newStreak.assigneeId:', newStreak.assigneeId);
+                    }, 100);
                   }}
                   className="w-full border border-gray-300 rounded-md px-3 py-2"
                   required
@@ -655,6 +705,20 @@ export default function StreaksManager() {
             </div>
 
             <div className="flex justify-end gap-3 mt-6">
+              <button
+                type="button"
+                onClick={() => {
+                  console.log('🧪 TEST - Current form state:');
+                  console.log('Title:', newStreak.title);
+                  console.log('Assignee ID:', newStreak.assigneeId);
+                  console.log('Family Members:', familyMembers);
+                  console.log('Selected Member:', familyMembers.find(m => m.id === newStreak.assigneeId));
+                  alert(`Form State:\nTitle: ${newStreak.title}\nAssignee: ${newStreak.assigneeId}\nMembers: ${familyMembers.length}`);
+                }}
+                className="px-4 py-2 text-blue-600 hover:text-blue-800 text-sm"
+              >
+                🧪 Test State
+              </button>
               <button
                 onClick={() => setShowCreateForm(false)}
                 className="px-4 py-2 text-gray-600 hover:text-gray-800"
