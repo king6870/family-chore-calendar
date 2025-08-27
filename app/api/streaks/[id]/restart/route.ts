@@ -146,30 +146,50 @@ export async function POST(
           }
         });
 
-        // Create the restart day and its task completions
-        const restartDate = new Date(now);
-        restartDate.setDate(now.getDate() + (restartDay - streak.currentDay)); // Adjust date appropriately
-
-        const newDay = await tx.streakDay.create({
-          data: {
-            dayNumber: restartDay,
-            date: restartDate,
+        // Create all remaining days from restart point to end
+        const daysToCreate = [];
+        for (let dayNum = restartDay; dayNum <= streak.duration; dayNum++) {
+          const dayDate = new Date(now);
+          if (streak.startedAt) {
+            const daysSinceStart = dayNum - 1;
+            dayDate.setTime(new Date(streak.startedAt).getTime() + (daysSinceStart * 24 * 60 * 60 * 1000));
+          } else {
+            dayDate.setDate(now.getDate() + (dayNum - restartDay));
+          }
+          
+          daysToCreate.push({
+            dayNumber: dayNum,
+            date: dayDate,
             streakId: streak.id,
             userId: streak.assigneeId,
             completed: false
+          });
+        }
+
+        // Create all remaining days
+        await tx.streakDay.createMany({
+          data: daysToCreate
+        });
+
+        // Create task completions for the restart day only (current day)
+        const restartDayRecord = await tx.streakDay.findFirst({
+          where: {
+            streakId: streak.id,
+            dayNumber: restartDay
           }
         });
 
-        // Create task completions for the restart day
-        const taskCompletions = streak.tasks.map(task => ({
-          taskId: task.id,
-          dayId: newDay.id,
-          completed: false
-        }));
+        if (restartDayRecord) {
+          const taskCompletions = streak.tasks.map(task => ({
+            taskId: task.id,
+            dayId: restartDayRecord.id,
+            completed: false
+          }));
 
-        await tx.streakTaskCompletion.createMany({
-          data: taskCompletions
-        });
+          await tx.streakTaskCompletion.createMany({
+            data: taskCompletions
+          });
+        }
 
         return updated;
       }

@@ -56,6 +56,7 @@ interface User {
   id: string;
   name: string;
   nickname?: string;
+  email?: string;
 }
 
 export default function StreaksManager() {
@@ -112,6 +113,7 @@ export default function StreaksManager() {
       const response = await fetch('/api/family/members');
       if (response.ok) {
         const data = await response.json();
+        console.log('Fetched family members:', data); // Debug log
         setFamilyMembers(data || []); // Ensure it's always an array
       } else {
         console.error('Failed to fetch family members:', response.status);
@@ -136,7 +138,25 @@ export default function StreaksManager() {
   };
 
   const createStreak = async () => {
+    // Validation
+    if (!newStreak.title.trim()) {
+      alert('Please enter a streak title');
+      return;
+    }
+    
+    if (!newStreak.assigneeId) {
+      alert('Please select a family member to assign this streak to');
+      return;
+    }
+    
+    if (newStreak.tasks.some(t => !t.title.trim())) {
+      alert('Please fill in all task titles');
+      return;
+    }
+
     try {
+      console.log('Creating streak with data:', newStreak); // Debug log
+      
       const response = await fetch('/api/streaks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -154,13 +174,15 @@ export default function StreaksManager() {
           assigneeId: '',
           tasks: [{ title: '', description: '', isRequired: true, options: [] }]
         });
+        alert('Streak created successfully!');
       } else {
         const error = await response.json();
-        alert(`Error: ${error.error}`);
+        console.error('Server error:', error);
+        alert(`Error: ${error.error || 'Failed to create streak'}`);
       }
     } catch (error) {
       console.error('Error creating streak:', error);
-      alert('Failed to create streak');
+      alert('Failed to create streak. Please try again.');
     }
   };
 
@@ -437,7 +459,11 @@ export default function StreaksManager() {
         </div>
         {isAdminOrOwner && (
           <button
-            onClick={() => setShowCreateForm(true)}
+            onClick={() => {
+              setShowCreateForm(true);
+              // Refresh family members when opening the form
+              fetchFamilyMembers();
+            }}
             className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium"
           >
             Create Streak
@@ -450,6 +476,14 @@ export default function StreaksManager() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold mb-4">Create New Streak</h2>
+            
+            {/* Debug Information */}
+            <div className="mb-4 p-3 bg-gray-100 rounded text-xs">
+              <strong>Debug Info:</strong><br/>
+              Family Members Count: {familyMembers.length}<br/>
+              Selected Assignee ID: {newStreak.assigneeId || 'None'}<br/>
+              Family Members: {familyMembers.map(m => `${m.nickname || m.name} (${m.id})`).join(', ')}
+            </div>
             
             <div className="space-y-4">
               <div>
@@ -503,8 +537,12 @@ export default function StreaksManager() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Assign to</label>
                 <select
                   value={newStreak.assigneeId}
-                  onChange={(e) => setNewStreak(prev => ({ ...prev, assigneeId: e.target.value }))}
+                  onChange={(e) => {
+                    console.log('Selected assignee:', e.target.value); // Debug log
+                    setNewStreak(prev => ({ ...prev, assigneeId: e.target.value }));
+                  }}
                   className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  required
                 >
                   <option value="">Select family member</option>
                   {(familyMembers || []).map(member => (
@@ -513,6 +551,14 @@ export default function StreaksManager() {
                     </option>
                   ))}
                 </select>
+                {familyMembers.length === 0 && (
+                  <p className="text-sm text-red-600 mt-1">No family members found. Make sure you're part of a family.</p>
+                )}
+                {newStreak.assigneeId && (
+                  <p className="text-sm text-green-600 mt-1">
+                    Selected: {familyMembers.find(m => m.id === newStreak.assigneeId)?.nickname || 'Unknown'}
+                  </p>
+                )}
               </div>
 
               <div>
@@ -740,8 +786,12 @@ export default function StreaksManager() {
                 </label>
                 <select
                   value={newStreak.assigneeId}
-                  onChange={(e) => setNewStreak(prev => ({ ...prev, assigneeId: e.target.value }))}
+                  onChange={(e) => {
+                    console.log('Edit form - Selected assignee:', e.target.value); // Debug log
+                    setNewStreak(prev => ({ ...prev, assigneeId: e.target.value }));
+                  }}
                   className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  required
                 >
                   <option value="">Select family member</option>
                   {(familyMembers || []).map(member => (
@@ -750,6 +800,14 @@ export default function StreaksManager() {
                     </option>
                   ))}
                 </select>
+                {familyMembers.length === 0 && (
+                  <p className="text-sm text-red-600 mt-1">No family members found. Make sure you're part of a family.</p>
+                )}
+                {newStreak.assigneeId && (
+                  <p className="text-sm text-green-600 mt-1">
+                    Selected: {familyMembers.find(m => m.id === newStreak.assigneeId)?.nickname || 'Unknown'}
+                  </p>
+                )}
               </div>
 
               <div>
