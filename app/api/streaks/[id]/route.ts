@@ -98,7 +98,7 @@ export async function PUT(
     // Admins can now edit streaks in any status
 
     const body = await request.json();
-    const { title, description, duration, pointsReward, assigneeId, tasks } = body;
+    const { title, description, duration, pointsReward, assigneeId, tasks, currentDay } = body;
 
     // Validate required fields
     if (!title || !assigneeId || !tasks || tasks.length === 0) {
@@ -115,6 +115,15 @@ export async function PUT(
 
     if (!assignee) {
       return NextResponse.json({ error: 'Invalid assignee' }, { status: 400 });
+    }
+
+    // Validate current day if provided (for active streaks)
+    if (currentDay !== undefined && existingStreak.status === 'active') {
+      if (currentDay < 1 || currentDay > duration) {
+        return NextResponse.json({ 
+          error: `Current day must be between 1 and ${duration}` 
+        }, { status: 400 });
+      }
     }
 
     // Update streak in transaction
@@ -140,7 +149,11 @@ export async function PUT(
           description,
           duration,
           pointsReward,
-          assigneeId
+          assigneeId,
+          // Update current day if provided and streak is active
+          ...(currentDay !== undefined && existingStreak.status === 'active' && {
+            currentDay: currentDay
+          })
         }
       });
 
@@ -169,16 +182,54 @@ export async function PUT(
         }
       }
 
+      // Handle current day change for active streaks
+      if (currentDay !== undefined && existingStreak.status === 'active' && currentDay !== existingStreak.currentDay) {
+        // Create task completions for the new current day if they don't exist
+        const currentDayRecord = await tx.streakDay.findFirst({
+          where: {
+            streakId: params.id,
+            dayNumber: currentDay
+          }
+        });
+
+        if (currentDayRecord) {
+          const existingCompletions = await tx.streakTaskCompletion.findMany({
+            where: { dayId: currentDayRecord.id }
+          });
+
+          if (existingCompletions.length === 0) {
+            // Get the updated tasks
+            const updatedTasks = await tx.streakTask.findMany({
+              where: { streakId: params.id }
+            });
+
+            const taskCompletions = updatedTasks.map(task => ({
+              taskId: task.id,
+              dayId: currentDayRecord.id,
+              completed: false
+            }));
+
+            await tx.streakTaskCompletion.createMany({
+              data: taskCompletions
+            });
+          }
+        }
+      }
+
       return streak;
     });
 
     // Log the activity
+    const activityDetails = currentDay !== undefined && existingStreak.status === 'active' && currentDay !== existingStreak.currentDay
+      ? `Updated streak "${title}" and changed current day from ${existingStreak.currentDay} to ${currentDay}`
+      : `Updated streak "${title}"`;
+      
     await prisma.activityLog.create({
       data: {
         userId: user.id,
         familyId: user.familyId,
         action: 'STREAK_UPDATED',
-        details: `Updated streak "${title}"`
+        details: activityDetails
       }
     });
 

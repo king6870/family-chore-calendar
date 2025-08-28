@@ -239,11 +239,35 @@ export default function StreaksManager() {
   const updateStreak = async () => {
     if (!editingStreak) return;
     
+    // Validation
+    if (!newStreak.title.trim()) {
+      alert('Please enter a streak title');
+      return;
+    }
+    
+    if (!newStreak.assigneeId) {
+      alert('Please select a family member to assign this streak to');
+      return;
+    }
+    
+    if (newStreak.tasks.some(t => !t.title.trim())) {
+      alert('Please fill in all task titles');
+      return;
+    }
+
     try {
+      console.log('Updating streak with data:', { 
+        ...newStreak, 
+        currentDay: editingStreak.currentDay 
+      });
+      
       const response = await fetch(`/api/streaks/${editingStreak.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newStreak)
+        body: JSON.stringify({
+          ...newStreak,
+          currentDay: editingStreak.currentDay // Include current day in update
+        })
       });
 
       if (response.ok) {
@@ -260,13 +284,15 @@ export default function StreaksManager() {
           startDelay: 0,
           tasks: [{ title: '', description: '', isRequired: true, options: [] }]
         });
+        alert('Streak updated successfully!');
       } else {
         const error = await response.json();
-        alert(`Error: ${error.error}`);
+        console.error('Server error:', error);
+        alert(`Error: ${error.error || 'Failed to update streak'}`);
       }
     } catch (error) {
       console.error('Error updating streak:', error);
-      alert('Failed to update streak');
+      alert('Failed to update streak. Please try again.');
     }
   };
 
@@ -574,7 +600,7 @@ export default function StreaksManager() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Duration (days)</label>
                   <input
@@ -597,6 +623,28 @@ export default function StreaksManager() {
                     min="1"
                   />
                 </div>
+
+                {editingStreak && editingStreak.status === 'active' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Current Day</label>
+                    <input
+                      type="number"
+                      value={editingStreak.currentDay}
+                      onChange={(e) => {
+                        const newDay = parseInt(e.target.value);
+                        if (newDay >= 1 && newDay <= editingStreak.duration) {
+                          setEditingStreak(prev => prev ? { ...prev, currentDay: newDay } : null);
+                        }
+                      }}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      min="1"
+                      max={editingStreak.duration}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Day {editingStreak.currentDay} of {editingStreak.duration}
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-3">
