@@ -13,7 +13,7 @@
   "crons": [
     {
       "path": "/api/streaks/advance-days",
-      "schedule": "0 * * * *"
+      "schedule": "0 0 * * *"
     }
   ]
 }
