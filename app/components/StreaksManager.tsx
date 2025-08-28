@@ -90,6 +90,30 @@ export default function StreaksManager() {
     tasks: [{ title: '', description: '', isRequired: true, options: [] as { title: string; description: string }[] }]
   });
 
+  // Helper function to get current date in family timezone
+  const getCurrentDateInTimezone = (timezone: string): Date => {
+    const now = new Date();
+    const options: Intl.DateTimeFormatOptions = {
+      timeZone: timezone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    };
+    
+    const formatter = new Intl.DateTimeFormat('en-CA', options);
+    const dateString = formatter.format(now);
+    return new Date(dateString + 'T00:00:00.000Z');
+  };
+
+  // Helper function to check if user can complete tasks today
+  const canCompleteTasksToday = (streakDay: any, familyTimezone: string): boolean => {
+    const currentDate = getCurrentDateInTimezone(familyTimezone);
+    const streakDate = new Date(streakDay.date);
+    streakDate.setUTCHours(0, 0, 0, 0);
+    
+    return currentDate.getTime() >= streakDate.getTime();
+  };
+
   useEffect(() => {
     fetchStreaks();
     fetchFamilyMembers();

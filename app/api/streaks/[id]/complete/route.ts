@@ -3,6 +3,30 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
+// Helper function to get current date in family timezone
+function getCurrentDateInTimezone(timezone: string): Date {
+  const now = new Date();
+  const options: Intl.DateTimeFormatOptions = {
+    timeZone: timezone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  };
+  
+  const formatter = new Intl.DateTimeFormat('en-CA', options); // en-CA gives YYYY-MM-DD format
+  const dateString = formatter.format(now);
+  return new Date(dateString + 'T00:00:00.000Z');
+}
+
+// Helper function to check if it's the correct day to complete tasks
+function canCompleteTasksToday(streakDay: any, familyTimezone: string): boolean {
+  const currentDate = getCurrentDateInTimezone(familyTimezone);
+  const streakDate = new Date(streakDay.date);
+  streakDate.setUTCHours(0, 0, 0, 0);
+  
+  return currentDate.getTime() >= streakDate.getTime();
+}
+
 // POST - Complete a task for today's streak day
 export async function POST(
   request: NextRequest,
@@ -15,7 +39,8 @@ export async function POST(
     }
 
     const user = await prisma.user.findUnique({
-      where: { email: session.user.email }
+      where: { email: session.user.email },
+      include: { family: true }
     });
 
     if (!user?.familyId) {
@@ -66,6 +91,15 @@ export async function POST(
       return NextResponse.json({ error: 'Current day not found' }, { status: 400 });
     }
 
+    // Check if user can complete tasks today (timezone-aware)
+    const familyTimezone = user.family?.timezone || 'UTC';
+    if (!canCompleteTasksToday(currentDay, familyTimezone)) {
+      const streakDate = new Date(currentDay.date);
+      return NextResponse.json({ 
+        error: `You can only complete tasks on or after ${streakDate.toLocaleDateString()}. Check back tomorrow!` 
+      }, { status: 400 });
+    }
+
     // Find the task completion
     const taskCompletion = currentDay.taskCompletions.find(tc => tc.taskId === taskId);
     if (!taskCompletion) {
@@ -108,32 +142,40 @@ export async function POST(
         data: { completed: dayCompleted }
       });
 
-      // If day is completed, advance to next day or complete streak
+      // Only advance to next day if all tasks are completed AND it's the right time
       if (dayCompleted && streak.currentDay < streak.duration) {
-        // Move to next day
-        const nextDay = streak.currentDay + 1;
-        await prisma.streak.update({
-          where: { id: params.id },
-          data: { currentDay: nextDay }
-        });
+        // Check if we should advance to next day (timezone-aware)
+        const currentDateInTimezone = getCurrentDateInTimezone(familyTimezone);
+        const nextDayDate = new Date(currentDay.date);
+        nextDayDate.setDate(nextDayDate.getDate() + 1);
+        nextDayDate.setUTCHours(0, 0, 0, 0);
 
-        // Create task completions for next day
-        const nextDayRecord = streak.days.find(d => d.dayNumber === nextDay);
-        if (nextDayRecord) {
-          const existingCompletions = await prisma.streakTaskCompletion.findMany({
-            where: { dayId: nextDayRecord.id }
+        // Only advance if the next day has arrived in family timezone
+        if (currentDateInTimezone.getTime() >= nextDayDate.getTime()) {
+          const nextDay = streak.currentDay + 1;
+          await prisma.streak.update({
+            where: { id: params.id },
+            data: { currentDay: nextDay }
           });
 
-          if (existingCompletions.length === 0) {
-            const taskCompletions = streak.tasks.map(task => ({
-              taskId: task.id,
-              dayId: nextDayRecord.id,
-              completed: false
-            }));
-
-            await prisma.streakTaskCompletion.createMany({
-              data: taskCompletions
+          // Create task completions for next day
+          const nextDayRecord = streak.days.find(d => d.dayNumber === nextDay);
+          if (nextDayRecord) {
+            const existingCompletions = await prisma.streakTaskCompletion.findMany({
+              where: { dayId: nextDayRecord.id }
             });
+
+            if (existingCompletions.length === 0) {
+              const taskCompletions = streak.tasks.map(task => ({
+                taskId: task.id,
+                dayId: nextDayRecord.id,
+                completed: false
+              }));
+
+              await prisma.streakTaskCompletion.createMany({
+                data: taskCompletions
+              });
+            }
           }
         }
       } else if (dayCompleted && streak.currentDay === streak.duration) {
@@ -166,37 +208,14 @@ export async function POST(
           }
         });
       }
-
-      // If a required task was unchecked, fail the streak
-      if (!completed && updatedCompletion && !dayCompleted) {
-        // Get the task to check if it's required
-        const task = await prisma.streakTask.findUnique({
-          where: { id: taskId }
-        });
-
-        if (task?.isRequired) {
-          await prisma.streak.update({
-            where: { id: params.id },
-            data: { 
-              status: 'failed',
-              failedAt: new Date()
-            }
-          });
-
-          // Log failure
-          await prisma.activityLog.create({
-            data: {
-              userId: user.id,
-              familyId: user.familyId,
-              action: 'failed_streak',
-              details: `Streak "${streak.title}" failed due to incomplete required task`
-            }
-          });
-        }
-      }
     }
 
-    return NextResponse.json(updatedCompletion);
+    return NextResponse.json({
+      ...updatedCompletion,
+      canAdvanceToNextDay: false, // Will be determined by timezone
+      familyTimezone: familyTimezone,
+      currentTimeInTimezone: getCurrentDateInTimezone(familyTimezone).toISOString()
+    });
   } catch (error) {
     console.error('Error completing task:', error);
     return NextResponse.json({ error: 'Failed to complete task' }, { status: 500 });

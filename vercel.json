@@ -9,5 +9,11 @@
     "app/api/**/*.ts": {
       "maxDuration": 30
     }
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/streaks/advance-days",
+      "schedule": "0 * * * *"
+    }
+  ]
 }
