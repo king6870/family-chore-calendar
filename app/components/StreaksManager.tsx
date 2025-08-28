@@ -85,6 +85,8 @@ export default function StreaksManager() {
     duration: 7,
     pointsReward: 100,
     assigneeId: '',
+    autoStart: true,
+    startDelay: 0, // days to delay start
     tasks: [{ title: '', description: '', isRequired: true, options: [] as { title: string; description: string }[] }]
   });
 
@@ -194,6 +196,8 @@ export default function StreaksManager() {
           duration: 7,
           pointsReward: 100,
           assigneeId: '',
+          autoStart: true,
+          startDelay: 0,
           tasks: [{ title: '', description: '', isRequired: true, options: [] }]
         });
         alert('Streak created successfully!');
@@ -228,6 +232,8 @@ export default function StreaksManager() {
           duration: 7,
           pointsReward: 100,
           assigneeId: '',
+          autoStart: true,
+          startDelay: 0,
           tasks: [{ title: '', description: '', isRequired: true, options: [] }]
         });
       } else {
@@ -248,6 +254,8 @@ export default function StreaksManager() {
       duration: streak.duration,
       pointsReward: streak.pointsReward,
       assigneeId: streak.assignee.id,
+      autoStart: false, // Default for editing
+      startDelay: 0,
       tasks: streak.tasks.map(task => ({
         title: task.title,
         description: task.description || '',
@@ -267,20 +275,28 @@ export default function StreaksManager() {
   };
 
   const startStreak = async (streakId: string) => {
+    console.log('🚀 Starting streak with ID:', streakId);
+    
     try {
       const response = await fetch(`/api/streaks/${streakId}/start`, {
         method: 'POST'
       });
 
+      console.log('📡 Start streak API response status:', response.status);
+
       if (response.ok) {
+        const result = await response.json();
+        console.log('✅ Streak started successfully:', result);
         await fetchStreaks();
+        alert('✅ Streak started successfully! You can now complete daily tasks.');
       } else {
         const error = await response.json();
-        alert(`Error: ${error.error}`);
+        console.error('❌ Failed to start streak:', error);
+        alert(`❌ Failed to start streak: ${error.error || 'Unknown error'}`);
       }
     } catch (error) {
-      console.error('Error starting streak:', error);
-      alert('Failed to start streak');
+      console.error('💥 Error starting streak:', error);
+      alert('💥 Failed to start streak. Please try again.');
     }
   };
 
@@ -557,6 +573,41 @@ export default function StreaksManager() {
                     min="1"
                   />
                 </div>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="autoStart"
+                    checked={newStreak.autoStart}
+                    onChange={(e) => setNewStreak(prev => ({ ...prev, autoStart: e.target.checked }))}
+                    className="mr-2"
+                  />
+                  <label htmlFor="autoStart" className="text-sm font-medium text-gray-700">
+                    Auto-start streak immediately
+                  </label>
+                </div>
+
+                {newStreak.autoStart && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Start delay (days)</label>
+                    <input
+                      type="number"
+                      value={newStreak.startDelay}
+                      onChange={(e) => setNewStreak(prev => ({ ...prev, startDelay: parseInt(e.target.value) || 0 }))}
+                      className="w-full border border-gray-300 rounded-md px-3 py-2"
+                      min="0"
+                      max="30"
+                      placeholder="0 = start today, 1 = start tomorrow"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      {newStreak.startDelay === 0 ? 'Streak will start today' : 
+                       newStreak.startDelay === 1 ? 'Streak will start tomorrow' :
+                       `Streak will start in ${newStreak.startDelay} days`}
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div>
@@ -1303,9 +1354,25 @@ export default function StreaksManager() {
 
                 <div className="flex gap-2 flex-wrap">
                   {/* User Actions */}
+                  {/* Start Button - Only for assigned user on pending streaks */}
+                  {(() => {
+                    console.log('🔍 Start button check:', {
+                      streakId: streak.id,
+                      assigneeId: streak.assignee.id,
+                      sessionUserId: session?.user?.id,
+                      isAssignee: streak.assignee.id === session?.user?.id,
+                      status: streak.status,
+                      isPending: streak.status === 'pending',
+                      shouldShowStart: streak.assignee.id === session?.user?.id && streak.status === 'pending'
+                    });
+                    return null;
+                  })()}
                   {streak.assignee.id === session?.user?.id && streak.status === 'pending' && (
                     <button
-                      onClick={() => startStreak(streak.id)}
+                      onClick={() => {
+                        console.log('🚀 Starting streak:', streak.id);
+                        startStreak(streak.id);
+                      }}
                       className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm"
                       title="Start this streak"
                     >

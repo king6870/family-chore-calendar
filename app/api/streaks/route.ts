@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Admin or Owner access required' }, { status: 403 });
     }
 
-    const { title, description, duration, pointsReward, assigneeId, tasks } = await request.json();
+    const { title, description, duration, pointsReward, assigneeId, tasks, autoStart, startDelay } = await request.json();
 
     if (!title || !duration || !pointsReward || !assigneeId || !tasks || !Array.isArray(tasks)) {
       return NextResponse.json({ 
@@ -120,13 +120,92 @@ export async function POST(request: NextRequest) {
       }
     });
 
+    // Auto-start streak if requested
+    if (autoStart) {
+      const startDate = new Date();
+      if (startDelay && startDelay > 0) {
+        startDate.setDate(startDate.getDate() + startDelay);
+      }
+
+      // Create all the days for the streak
+      const days: Array<{
+        dayNumber: number;
+        date: Date;
+        streakId: string;
+        userId: string;
+      }> = [];
+      
+      for (let i = 1; i <= streak.duration; i++) {
+        const dayDate = new Date(startDate);
+        dayDate.setDate(startDate.getDate() + (i - 1));
+        
+        days.push({
+          dayNumber: i,
+          date: dayDate,
+          streakId: streak.id,
+          userId: assigneeId
+        });
+      }
+
+      // Update streak to active and create days
+      await prisma.$transaction(async (tx) => {
+        // Update streak status
+        await tx.streak.update({
+          where: { id: streak.id },
+          data: {
+            status: 'active',
+            startedAt: startDate,
+            currentDay: 1
+          }
+        });
+
+        // Create all days
+        await tx.streakDay.createMany({
+          data: days
+        });
+
+        // Create task completions for day 1
+        const day1 = days.find(d => d.dayNumber === 1);
+        if (day1) {
+          const taskCompletions = streak.tasks.map(task => ({
+            taskId: task.id,
+            dayId: '', // Will be set after day creation
+            completed: false
+          }));
+
+          // Get the created day 1 record
+          const createdDay1 = await tx.streakDay.findFirst({
+            where: {
+              streakId: streak.id,
+              dayNumber: 1
+            }
+          });
+
+          if (createdDay1) {
+            const completionsWithDayId = taskCompletions.map(tc => ({
+              ...tc,
+              dayId: createdDay1.id
+            }));
+
+            await tx.streakTaskCompletion.createMany({
+              data: completionsWithDayId
+            });
+          }
+        }
+      });
+    }
+
     // Log activity
+    const actionDetails = autoStart 
+      ? `Created and auto-started streak "${title}" for ${assignee.nickname || assignee.name}${startDelay > 0 ? ` (starts in ${startDelay} days)` : ''}`
+      : `Created streak "${title}" for ${assignee.nickname || assignee.name}`;
+      
     await prisma.activityLog.create({
       data: {
         userId: user.id,
         familyId: user.familyId,
-        action: 'created_streak',
-        details: `Created streak "${title}" for ${assignee.nickname || assignee.name}`
+        action: autoStart ? 'created_and_started_streak' : 'created_streak',
+        details: actionDetails
       }
     });
 
